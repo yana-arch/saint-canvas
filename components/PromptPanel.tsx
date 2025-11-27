@@ -159,7 +159,7 @@ export const PromptPanel: React.FC<PromptPanelProps> = ({ stageRef }) => {
                          : 'text-gray-500 hover:bg-white/60'}`}
           >
             <Wand2 className="w-4 h-4 inline mr-2" />
-            Tạo Mới
+            Generate
           </button>
           <button
             onClick={() => setMode('image-to-image')}
@@ -169,7 +169,7 @@ export const PromptPanel: React.FC<PromptPanelProps> = ({ stageRef }) => {
                          : 'text-gray-500 hover:bg-white/60'}`}
           >
             <ImageIcon className="w-4 h-4 inline mr-2" />
-            Biến Đổi
+            Transform
           </button>
         </div>
       </div>
@@ -178,13 +178,13 @@ export const PromptPanel: React.FC<PromptPanelProps> = ({ stageRef }) => {
       {!isConfigured && (
         <div className="mx-4 mt-4 p-3 bg-gold-400/10 border border-gold-400/30 rounded-lg">
           <p className="text-sm text-gold-600">
-            Cần thêm API key cho {providerConfig?.name} để sử dụng
+            An API key for {providerConfig?.name} is required.
           </p>
           <button
             onClick={() => setShowAPIKeyModal(activeProvider)}
             className="mt-2 text-sm text-gold-500 hover:text-gold-600 underline"
           >
-            Thêm API Key →
+            Set API Key →
           </button>
         </div>
       )}
@@ -213,14 +213,14 @@ export const PromptPanel: React.FC<PromptPanelProps> = ({ stageRef }) => {
         {/* Prompt Input */}
         <div>
           <label className="block text-xs font-bold text-gray-500 uppercase mb-2">
-            Mô Tả Hình Ảnh
+            Prompt
           </label>
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder={mode === 'text-to-image' 
-              ? "Mô tả hình ảnh bạn muốn tạo...\nVí dụ: Đức Mẹ Maria với vầng hào quang, phong cách Byzantine"
-              : "Mô tả cách bạn muốn biến đổi canvas hiện tại..."}
+              ? "Describe the image you want to create...\ne.g., The Virgin Mary with a halo, Byzantine style"
+              : "Describe how you want to transform the current canvas..."}
             rows={4}
             className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg
                        focus:border-holy-500 focus:ring-1 focus:ring-holy-400 focus:outline-none resize-none text-gray-800"
@@ -230,7 +230,7 @@ export const PromptPanel: React.FC<PromptPanelProps> = ({ stageRef }) => {
         {/* Style Selection */}
         <div>
           <label className="block text-xs font-bold text-gray-500 uppercase mb-2">
-            Phong Cách Nghệ Thuật
+            Art Style
           </label>
           <div className="grid grid-cols-3 gap-2">
             {CATHOLIC_ART_STYLES.map((style) => (
@@ -256,7 +256,7 @@ export const PromptPanel: React.FC<PromptPanelProps> = ({ stageRef }) => {
             className="flex items-center gap-2 text-sm text-gray-500 hover:text-holy-700"
           >
             <ChevronDown className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
-            Tùy chọn nâng cao
+            Advanced Options
           </button>
 
           {showAdvanced && (
@@ -264,7 +264,7 @@ export const PromptPanel: React.FC<PromptPanelProps> = ({ stageRef }) => {
               {/* Number of Images */}
               <div>
                 <label className="flex items-center justify-between text-xs text-gray-500">
-                  <span>Số lượng ảnh</span>
+                  <span>Number of Images</span>
                   <span className="text-gray-800 font-medium">{numImages}</span>
                 </label>
                 <input
@@ -280,7 +280,7 @@ export const PromptPanel: React.FC<PromptPanelProps> = ({ stageRef }) => {
               {/* Guidance Scale */}
               <div>
                 <label className="flex items-center justify-between text-xs text-gray-500">
-                  <span>Độ tuân thủ prompt</span>
+                  <span>Guidance Scale</span>
                   <span className="text-gray-800 font-medium">{guidanceScale}</span>
                 </label>
                 <input
@@ -302,7 +302,7 @@ export const PromptPanel: React.FC<PromptPanelProps> = ({ stageRef }) => {
                 <textarea
                   value={negativePrompt}
                   onChange={(e) => setNegativePrompt(e.target.value)}
-                  placeholder="Những gì bạn KHÔNG muốn trong ảnh..."
+                  placeholder="What you DON'T want in the image..."
                   rows={2}
                   className="w-full px-3 py-2 bg-white border border-gray-300 
                              rounded-lg text-sm resize-none text-gray-800"
@@ -320,7 +320,7 @@ export const PromptPanel: React.FC<PromptPanelProps> = ({ stageRef }) => {
           <div className="flex items-center justify-between mb-3 text-xs">
             <span className="text-gray-500 flex items-center gap-1">
               <DollarSign className="w-4 h-4" />
-              Chi phí ước tính
+              Estimated Cost
             </span>
             <span className="text-holy-700 font-medium">
               ${estimatedCost.toFixed(3)}
@@ -340,12 +340,12 @@ export const PromptPanel: React.FC<PromptPanelProps> = ({ stageRef }) => {
           {isGenerating ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              Đang tạo... {generationProgress}%
+              Generating... {generationProgress}%
             </>
           ) : (
             <>
               <Sparkles className="w-5 h-5" />
-              {mode === 'text-to-image' ? 'Tạo Hình Ảnh' : 'Biến Đổi Canvas'}
+              {mode === 'text-to-image' ? 'Generate Image' : 'Transform Canvas'}
             </>
           )}
         </button>
