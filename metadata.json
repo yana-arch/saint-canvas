@@ -1,0 +1,5 @@
+{
+  "name": "SaintCanvas",
+  "description": "A Catholic-themed AI image editor allowing users to generate and compose holy imagery using Google Gemini.",
+  "requestFramePermissions": []
+}
