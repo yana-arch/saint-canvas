@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Sparkles,
@@ -8,6 +7,7 @@ import {
   ChevronDown,
   Info,
   DollarSign,
+  Settings2,
 } from 'lucide-react';
 import { useAIStore } from '../store/aiStore';
 import { useStore } from '../store';
@@ -15,6 +15,7 @@ import aiManager from '../services/ai/AIProviderManager';
 import ProviderSelector from './ai/ProviderSelector';
 import APIKeyManager from './ai/APIKeyManager';
 import { CATHOLIC_ART_STYLES } from '../services/ai/presets/catholicStyles';
+import { DEPARTMENT_TRANSFORMS, DEPARTMENT_CATEGORIES } from '../services/ai/presets/departmentTransforms';
 import { 
   AIProviderType, 
   GenerationMode, 
@@ -43,6 +44,10 @@ export const PromptPanel: React.FC<PromptPanelProps> = ({ stageRef }) => {
   const [selectedModel, setSelectedModel] = useState<string>('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showAPIKeyModal, setShowAPIKeyModal] = useState<AIProviderType | null>(null);
+
+  // Department transformation state
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('none');
+  const [showDepartmentTransform, setShowDepartmentTransform] = useState(false);
 
   // Advanced options
   const [numImages, setNumImages] = useState(1);
@@ -89,6 +94,7 @@ export const PromptPanel: React.FC<PromptPanelProps> = ({ stageRef }) => {
 
     try {
       let sourceImage: string | undefined;
+      let finalPrompt = prompt.trim();
       
       if (mode === 'image-to-image') {
         sourceImage = await getCanvasDataURL();
@@ -96,12 +102,20 @@ export const PromptPanel: React.FC<PromptPanelProps> = ({ stageRef }) => {
             alert("Could not capture canvas. Please try again.");
             return;
         }
+
+        // Apply department transformation if selected
+        if (selectedDepartment !== 'none') {
+          const department = DEPARTMENT_TRANSFORMS.find(d => d.id === selectedDepartment);
+          if (department) {
+            finalPrompt = `${finalPrompt}. ${department.prompt}`;
+          }
+        }
       }
 
       const response = await generate({
         model: selectedModel,
         mode,
-        prompt: prompt.trim(),
+        prompt: finalPrompt,
         negativePrompt: negativePrompt.trim() || undefined,
         style: selectedStyle,
         numImages,
@@ -119,7 +133,7 @@ export const PromptPanel: React.FC<PromptPanelProps> = ({ stageRef }) => {
               category: 'ai-generated',
               name: `AI: ${prompt.slice(0, 20)}...`,
               src: imgSrc,
-              description: prompt
+              description: finalPrompt
             });
           }
         }
@@ -134,6 +148,8 @@ export const PromptPanel: React.FC<PromptPanelProps> = ({ stageRef }) => {
     const model = availableModels.find(m => m.id === selectedModel);
     return (model?.costPerImage || 0) * numImages;
   }, [selectedModel, numImages, availableModels]);
+
+  const selectedDepartmentData = DEPARTMENT_TRANSFORMS.find(d => d.id === selectedDepartment);
 
   return (
     <div className="flex flex-col h-full bg-white">
@@ -249,6 +265,82 @@ export const PromptPanel: React.FC<PromptPanelProps> = ({ stageRef }) => {
           </div>
         </div>
 
+        {/* Department Transform Section - Only show in Transform mode */}
+        {mode === 'image-to-image' && (
+          <div>
+            <button
+              onClick={() => setShowDepartmentTransform(!showDepartmentTransform)}
+              className="flex items-center gap-2 text-sm text-holy-700 hover:text-holy-900 font-medium"
+            >
+              <Settings2 className="w-4 h-4" />
+              Vocational Department Transform
+              <ChevronDown className={`w-4 h-4 transition-transform ${showDepartmentTransform ? 'rotate-180' : ''}`} />
+            </button>
+
+            {showDepartmentTransform && (
+              <div className="mt-3 space-y-3">
+                {/* Department Selection */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">
+                    Select Department
+                  </label>
+                  <select
+                    value={selectedDepartment}
+                    onChange={(e) => setSelectedDepartment(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg
+                               focus:border-holy-500 focus:ring-1 focus:ring-holy-400 focus:outline-none text-gray-800"
+                  >
+                    <option value="none">None - Manual Transform Only</option>
+                    {DEPARTMENT_CATEGORIES.map((category) => (
+                      <optgroup key={category.name} label={category.name}>
+                        {category.departments.map((deptId) => {
+                          const dept = DEPARTMENT_TRANSFORMS.find(d => d.id === deptId);
+                          return dept ? (
+                            <option key={dept.id} value={dept.id}>
+                              {dept.icon} {dept.name}
+                            </option>
+                          ) : null;
+                        })}
+                      </optgroup>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Department Description */}
+                {selectedDepartmentData && (
+                  <div className="p-3 bg-holy-100 rounded-lg border border-holy-200">
+                    <h4 className="text-sm font-medium text-holy-800 mb-1">
+                      {selectedDepartmentData.icon} {selectedDepartmentData.name}
+                    </h4>
+                    <p className="text-xs text-holy-700 mb-2">
+                      {selectedDepartmentData.description}
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {selectedDepartmentData.contextTags.map((tag) => (
+                        <span 
+                          key={tag}
+                          className="px-2 py-1 bg-holy-200 text-holy-800 text-xs rounded-md"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Info Notice */}
+                <div className="flex items-start gap-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                  <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-blue-800">
+                    Department transform adds workshop/industry context to your canvas transformation. 
+                    The selected department's environment will be integrated with your transformation prompt.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Advanced Options */}
         <div>
           <button
@@ -346,6 +438,7 @@ export const PromptPanel: React.FC<PromptPanelProps> = ({ stageRef }) => {
             <>
               <Sparkles className="w-5 h-5" />
               {mode === 'text-to-image' ? 'Generate Image' : 'Transform Canvas'}
+              {selectedDepartmentData && mode === 'image-to-image' ? ` + ${selectedDepartmentData.name}` : ''}
             </>
           )}
         </button>
