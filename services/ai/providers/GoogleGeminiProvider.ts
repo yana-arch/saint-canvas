@@ -1,4 +1,3 @@
-
 import { GoogleGenAI } from '@google/genai';
 import { BaseAIProvider } from '../BaseProvider';
 import {
@@ -46,8 +45,8 @@ export class GoogleGeminiProvider extends BaseAIProvider {
   }
 
   isConfigured(): boolean {
-     // Gemini is special because it might have a process.env key OR a user provided key
-     return !!this.apiKey || !!process.env.API_KEY;
+    // Now only uses user-provided API key
+    return !!this.apiKey;
   }
 
   async validateApiKey(apiKey: string): Promise<boolean> {
@@ -70,14 +69,12 @@ export class GoogleGeminiProvider extends BaseAIProvider {
   }
 
   async generate(request: GenerationRequest): Promise<GenerationResponse> {
-    // Priority: User API Key -> Env API Key
-    const keyToUse = this.apiKey || process.env.API_KEY;
-    
-    if (!keyToUse) {
-      throw new Error('API key not configured for Gemini');
+    // Now only uses user-provided API key
+    if (!this.apiKey) {
+      throw new Error('API key not configured for Gemini. Please add your API key in Settings.');
     }
 
-    const client = new GoogleGenAI({ apiKey: keyToUse });
+    const client = new GoogleGenAI({ apiKey: this.apiKey });
     const startTime = Date.now();
 
     try {

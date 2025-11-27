@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Key, 
   Eye, 
@@ -21,13 +20,13 @@ interface APIKeyManagerProps {
 const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, onClose }) => {
   const config = aiManager.getAllProviders().find(p => p.id === provider);
   
-  // Use lazy initialization for state to check configuration only once on mount.
-  // This prevents the input from resetting to the mask if the parent component re-renders.
-  const [apiKey, setApiKey] = useState(() => {
-    const isConfigured = aiManager.getConfiguredProviders().some(p => p.id === provider);
-    return isConfigured ? '••••••••••••••••••••' : '';
+  // Track if we should show the masked input (when API key exists but user hasn't focused)
+  const [hasApiKey, setHasApiKey] = useState(() => {
+    return aiManager.getConfiguredProviders().some(p => p.id === provider);
   });
-
+  
+  // The actual input value
+  const [apiKey, setApiKey] = useState('');
   const [isSaved, setIsSaved] = useState(() => {
     return aiManager.getConfiguredProviders().some(p => p.id === provider);
   });
@@ -35,6 +34,19 @@ const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, onClose }) => {
   const [showKey, setShowKey] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
   const [validationResult, setValidationResult] = useState<boolean | null>(null);
+
+  // Update state when provider configuration changes
+  useEffect(() => {
+    const isConfigured = aiManager.getConfiguredProviders().some(p => p.id === provider);
+    setHasApiKey(isConfigured);
+    setIsSaved(isConfigured);
+    
+    // Reset input if API key was removed
+    if (!isConfigured) {
+      setApiKey('');
+      setValidationResult(null);
+    }
+  }, [provider]);
 
   const handleValidate = async () => {
     if (!apiKey || apiKey.includes('•')) return;
@@ -49,7 +61,8 @@ const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, onClose }) => {
       if (isValid) {
         aiManager.setApiKey(provider, apiKey);
         setIsSaved(true);
-        setApiKey('••••••••••••••••••••');
+        setHasApiKey(true);
+        setApiKey(''); // Clear the input after successful save
       }
     } catch (error) {
       setValidationResult(false);
@@ -62,6 +75,7 @@ const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, onClose }) => {
     aiManager.removeApiKey(provider);
     setApiKey('');
     setIsSaved(false);
+    setHasApiKey(false);
     setValidationResult(null);
   };
 
@@ -114,6 +128,36 @@ const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, onClose }) => {
 
   const guide = getProviderGuide();
 
+  // Determine what to show in the input
+  const getInputValue = () => {
+    if (showKey && hasApiKey && !apiKey) {
+      // Show masked version when user wants to see but we don't have the actual key
+      return '••••••••••••••••••••';
+    }
+    return apiKey || (hasApiKey && !showKey ? '••••••••••••••••••••' : '');
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setApiKey(newValue);
+    setValidationResult(null);
+    
+    // If user is typing something different from the mask, they want to update
+    if (newValue !== '••••••••••••••••••••') {
+      setIsSaved(false);
+    }
+  };
+
+  const handleInputFocus = () => {
+    // Clear input when user wants to enter a new key
+    if (hasApiKey) {
+      setApiKey('');
+      setHasApiKey(false);
+      setIsSaved(false);
+      setValidationResult(null);
+    }
+  };
+
   if (!config) return null;
 
   return (
@@ -145,20 +189,10 @@ const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, onClose }) => {
             <div className="relative">
               <input
                 type={showKey ? 'text' : 'password'}
-                value={apiKey}
+                value={getInputValue()}
                 autoComplete="off"
-                onFocus={() => {
-                  if (apiKey === '••••••••••••••••••••') {
-                    setApiKey('');
-                  }
-                }}
-                onChange={(e) => {
-                  setApiKey(e.target.value);
-                  setValidationResult(null);
-                  if (e.target.value !== '••••••••••••••••••••') {
-                    setIsSaved(false);
-                  }
-                }}
+                onFocus={handleInputFocus}
+                onChange={handleInputChange}
                 placeholder="Paste API key here..."
                 className="w-full px-4 py-2.5 pr-20 bg-white border border-gray-300 
                            rounded-lg focus:border-holy-500 focus:ring-1 focus:ring-holy-400 focus:outline-none text-gray-800"
@@ -168,11 +202,20 @@ const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, onClose }) => {
                   onClick={() => setShowKey(!showKey)}
                   className="p-1.5 hover:bg-gray-100 rounded text-gray-400"
                   tabIndex={-1}
+                  disabled={!hasApiKey}
                 >
                   {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
+
+            {/* Status Info */}
+            {hasApiKey && !showKey && !apiKey && (
+              <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
+                <Check className="w-4 h-4 text-green-500" />
+                <span>API key is configured</span>
+              </div>
+            )}
 
             {/* Validation Status */}
             {validationResult !== null && (
@@ -207,7 +250,7 @@ const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, onClose }) => {
                   <Loader2 className="w-4 h-4 animate-spin" />
                   Validating...
                 </>
-              ) : isSaved && !apiKey.includes('•') ? (
+              ) : isSaved ? (
                 <>
                   <Check className="w-4 h-4" />
                   Saved
@@ -217,7 +260,7 @@ const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, onClose }) => {
               )}
             </button>
             
-            {isSaved && (
+            {hasApiKey && (
               <button
                 onClick={handleRemove}
                 className="px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 
