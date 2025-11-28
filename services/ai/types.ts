@@ -129,4 +129,5 @@ export interface ProviderCredentials {
   apiKey: string;
   organizationId?: string;  // For OpenAI
   projectId?: string;       // For Google
+  skipValidation?: boolean; // If true, key was saved without validation to preserve quota
 }

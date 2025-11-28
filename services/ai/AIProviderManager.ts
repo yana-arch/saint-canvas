@@ -30,6 +30,7 @@ interface QueuedRequest {
 class AIProviderManager {
   private providers: Map<AIProviderType, BaseAIProvider> = new Map();
   private credentials: Map<AIProviderType, string> = new Map();
+  private skipValidationFlags: Map<AIProviderType, boolean> = new Map();
   private defaultProvider: AIProviderType = 'google-gemini';
 
   // Rate limiting data
@@ -57,6 +58,7 @@ class AIProviderManager {
       if (stored) {
         const creds = JSON.parse(stored) as ProviderCredentials[];
         creds.forEach(cred => {
+          this.skipValidationFlags.set(cred.provider, cred.skipValidation || false);
           this.setApiKey(cred.provider, cred.apiKey);
         });
       }
@@ -110,10 +112,15 @@ class AIProviderManager {
   }
 
   setApiKey(provider: AIProviderType, apiKey: string): void {
+    this.setApiKeyWithoutValidation(provider, apiKey, false);
+  }
+
+  setApiKeyWithoutValidation(provider: AIProviderType, apiKey: string, skipValidation: boolean = false): void {
     const p = this.providers.get(provider);
     if (p) {
       p.setApiKey(apiKey);
       this.credentials.set(provider, apiKey);
+      this.skipValidationFlags.set(provider, skipValidation);
       this.saveCredentials();
     }
   }
@@ -129,14 +136,19 @@ class AIProviderManager {
     if (p) {
       p.setApiKey('');
       this.credentials.delete(provider);
+      this.skipValidationFlags.delete(provider);
       this.saveCredentials();
     }
   }
 
   private saveCredentials(): void {
     const creds: ProviderCredentials[] = Array.from(this.credentials.entries())
-      .map(([provider, apiKey]) => ({ provider, apiKey }));
-    
+      .map(([provider, apiKey]) => ({
+        provider,
+        apiKey,
+        skipValidation: this.skipValidationFlags.get(provider) || undefined
+      }));
+
     // Note: In production, use secure storage, not localStorage
     localStorage.setItem('ai-credentials', JSON.stringify(creds));
   }

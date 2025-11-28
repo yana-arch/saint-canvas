@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { X, Wand2, Paintbrush, Undo2, RotateCw, Palette } from 'lucide-react';
+import { X, Wand2, Paintbrush, Undo2, RotateCw, Palette, Loader } from 'lucide-react';
 
 interface BackgroundRemovalDialogProps {
   isOpen: boolean;
@@ -30,6 +30,36 @@ export const BackgroundRemovalDialog: React.FC<BackgroundRemovalDialogProps> = (
   const [tool, setTool] = useState<'wand' | 'brush'>('wand');
   const [brushSize, setBrushSize] = useState(20);
   const [clickedColor, setClickedColor] = useState<string>('#000000');
+  const [isUpdatingPreview, setIsUpdatingPreview] = useState(false);
+
+  // Timer for delayed updates
+  const updateTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Delayed update effect for magic wand when threshold or points change
+  useEffect(() => {
+    if (!selectedPoints.length) return;
+
+    // Clear existing timer
+    if (updateTimerRef.current) {
+      clearTimeout(updateTimerRef.current);
+    }
+
+    setIsUpdatingPreview(true);
+
+    // Set new timer for delayed update
+    updateTimerRef.current = setTimeout(async () => {
+      // Re-process selected points with new threshold
+      await reprocessSelection();
+      setIsUpdatingPreview(false);
+    }, 2500); // 2.5 seconds delay
+
+    // Cleanup function
+    return () => {
+      if (updateTimerRef.current) {
+        clearTimeout(updateTimerRef.current);
+      }
+    };
+  }, [threshold]);
 
   // Initialize canvas with image
   useEffect(() => {
@@ -226,6 +256,35 @@ export const BackgroundRemovalDialog: React.FC<BackgroundRemovalDialogProps> = (
     updatePreview();
   };
 
+  const reprocessSelection = async () => {
+    if (!selectedPoints.length) return;
+
+    // Reset color canvas to fully opaque
+    const colorCanvas = colorCanvasRef.current;
+    if (colorCanvas) {
+      const ctx = colorCanvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = 'rgba(255, 255, 255, 1)';
+        ctx.fillRect(0, 0, colorCanvas.width, colorCanvas.height);
+      }
+    }
+
+    // Re-process each selected point
+    for (const point of selectedPoints) {
+      const color = getColorAtPoint(point.x, point.y);
+      if (color) {
+        await new Promise(resolve => {
+          processMagicWand(color);
+          // Small delay to avoid freeze
+          setTimeout(resolve, 10);
+        });
+      }
+    }
+
+    // Update preview one final time
+    updatePreview();
+  };
+
   const updatePreview = () => {
     const previewCanvas = previewCanvasRef.current;
     const colorCanvas = colorCanvasRef.current;
@@ -405,7 +464,15 @@ export const BackgroundRemovalDialog: React.FC<BackgroundRemovalDialogProps> = (
 
             {/* Preview */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-800 mb-2">Preview</h3>
+              <div className="flex items-center gap-2 mb-2">
+                <h3 className="text-sm font-semibold text-gray-800">Preview</h3>
+                {isUpdatingPreview && (
+                  <div className="flex items-center gap-1 text-xs text-blue-600">
+                    <Loader size={12} className="animate-spin" />
+                    Updating...
+                  </div>
+                )}
+              </div>
               <div className="border border-gray-200 rounded overflow-hidden max-h-96">
                 <canvas
                   ref={previewCanvasRef}

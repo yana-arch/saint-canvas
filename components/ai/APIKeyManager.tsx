@@ -34,6 +34,7 @@ const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, onClose }) => {
   const [showKey, setShowKey] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
   const [validationResult, setValidationResult] = useState<boolean | null>(null);
+  const [skipValidation, setSkipValidation] = useState(false);
 
   // Update state when provider configuration changes
   useEffect(() => {
@@ -48,26 +49,36 @@ const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, onClose }) => {
     }
   }, [provider]);
 
-  const handleValidate = async () => {
+  const handleSave = async () => {
     if (!apiKey || apiKey.includes('•')) return;
 
     setIsValidating(true);
     setValidationResult(null);
 
-    try {
-      const isValid = await aiManager.validateApiKey(provider, apiKey);
-      setValidationResult(isValid);
-      
-      if (isValid) {
-        aiManager.setApiKey(provider, apiKey);
-        setIsSaved(true);
-        setHasApiKey(true);
-        setApiKey(''); // Clear the input after successful save
-      }
-    } catch (error) {
-      setValidationResult(false);
-    } finally {
+    if (skipValidation) {
+      // Save without validation
+      aiManager.setApiKeyWithoutValidation(provider, apiKey, true);
+      setIsSaved(true);
+      setHasApiKey(true);
+      setApiKey('');
       setIsValidating(false);
+    } else {
+      // Validate first, then save
+      try {
+        const isValid = await aiManager.validateApiKey(provider, apiKey);
+        setValidationResult(isValid);
+
+        if (isValid) {
+          aiManager.setApiKey(provider, apiKey);
+          setIsSaved(true);
+          setHasApiKey(true);
+          setApiKey('');
+        }
+      } catch (error) {
+        setValidationResult(false);
+      } finally {
+        setIsValidating(false);
+      }
     }
   };
 
@@ -236,25 +247,43 @@ const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, onClose }) => {
             )}
           </div>
 
+          {/* Skip Validation Checkbox */}
+          {!isSaved && (
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="skip-validation"
+                checked={skipValidation}
+                onChange={(e) => setSkipValidation(e.target.checked)}
+                className="w-4 h-4 text-holy-600 border-gray-300 rounded focus:ring-holy-500"
+              />
+              <label htmlFor="skip-validation" className="text-sm text-gray-600">
+                Skip validation (preserve daily quota)
+              </label>
+            </div>
+          )}
+
           {/* Action Buttons */}
           <div className="flex gap-2">
             <button
-              onClick={handleValidate}
+              onClick={handleSave}
               disabled={!apiKey || apiKey.includes('•') || isValidating}
-              className="flex-1 py-2.5 bg-holy-600 hover:bg-holy-700 disabled:bg-gray-300 
+              className="flex-1 py-2.5 bg-holy-600 hover:bg-holy-700 disabled:bg-gray-300
                          disabled:text-gray-500 rounded-lg font-medium transition-colors
                          flex items-center justify-center gap-2 text-white"
             >
               {isValidating ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Validating...
+                  {skipValidation ? 'Saving...' : 'Validating...'}
                 </>
               ) : isSaved ? (
                 <>
                   <Check className="w-4 h-4" />
                   Saved
                 </>
+              ) : skipValidation ? (
+                'Save (Skip Validation)'
               ) : (
                 'Validate & Save'
               )}
