@@ -8,7 +8,7 @@ export type AIProviderType =
   | 'fal-ai'
   | 'leonardo-ai';
 
-export type GenerationMode = 'text-to-image' | 'image-to-image' | 'inpainting' | 'outpainting';
+export type GenerationMode = 'text-to-image' | 'image-to-image' | 'inpainting' | 'outpainting' | 'background-removal';
 
 export type ImageSize = '512x512' | '768x768' | '1024x1024' | '1024x1792' | '1792x1024';
 

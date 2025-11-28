@@ -25,9 +25,13 @@ export abstract class BaseAIProvider {
   async editImage(request: GenerationRequest): Promise<GenerationResponse> {
     throw new Error(`${this.config.name} does not support image editing`);
   }
-  
+
   async inpaint(request: GenerationRequest): Promise<GenerationResponse> {
     throw new Error(`${this.config.name} does not support inpainting`);
+  }
+
+  async removeBackground(request: GenerationRequest): Promise<GenerationResponse> {
+    throw new Error(`${this.config.name} does not support background removal`);
   }
 
   // Common methods

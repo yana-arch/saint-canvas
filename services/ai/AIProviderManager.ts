@@ -67,6 +67,34 @@ class AIProviderManager {
 
   // Public Methods
 
+  async removeBackground(request: GenerationRequest): Promise<GenerationResponse> {
+    const provider = this.providers.get(request.provider);
+    if (!provider) {
+      throw new Error(`Provider ${request.provider} not found`);
+    }
+
+    if (!provider.isConfigured()) {
+      throw new Error(`Provider ${request.provider} is not configured. Please add API key.`);
+    }
+
+    const startTime = Date.now();
+
+    if (provider.removeBackground) {
+      return provider.removeBackground(request);
+    } else if (provider.editImage) {
+      // Fallback: use image-to-image with background removal prompt
+      const bgRemovalRequest: GenerationRequest = {
+        ...request,
+        mode: 'image-to-image',
+        prompt: 'Remove the background, make it transparent, keep the main subject',
+        strength: 0.8
+      };
+      return provider.editImage(bgRemovalRequest);
+    } else {
+      throw new Error('Background removal requires a provider that supports image-to-image editing');
+    }
+  }
+
   getProvider(type: AIProviderType): BaseAIProvider | undefined {
     return this.providers.get(type);
   }
@@ -212,6 +240,8 @@ class AIProviderManager {
         return provider.inpaint(request);
       case 'image-to-image':
         return provider.editImage(request);
+      case 'background-removal':
+        return provider.removeBackground(request);
       default:
         return provider.generate(request);
     }

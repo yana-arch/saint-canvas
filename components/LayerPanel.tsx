@@ -1,10 +1,12 @@
 
 import React, { useState } from 'react';
 import { useStore } from '../store';
-import { 
-  Eye, EyeOff, Lock, Unlock, 
+import { aiManager } from '../services/ai/AIProviderManager';
+import { BackgroundRemovalDialog } from './BackgroundRemovalDialog';
+import {
+  Eye, EyeOff, Lock, Unlock,
   Layers, Sliders, Type, ImageIcon, Sparkles,
-  Eclipse, AlignCenter, Droplet, GripVertical
+  Eclipse, AlignCenter, Droplet, GripVertical, Eraser, Wand2, Paintbrush
 } from 'lucide-react';
 
 export const LayerPanel: React.FC = () => {
@@ -17,6 +19,8 @@ export const LayerPanel: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'layers' | 'settings'>('layers');
   const [draggedLayerId, setDraggedLayerId] = useState<string | null>(null);
+  const [isProcessingBgRemoval, setIsProcessingBgRemoval] = useState(false);
+  const [isBgRemovalDialogOpen, setIsBgRemovalDialogOpen] = useState(false);
 
   // Layers are stored bottom-to-top. Display top-to-bottom for list (Reverse for UI).
   // Note: dragging logic needs to account for this visual reversal.
@@ -53,6 +57,45 @@ export const LayerPanel: React.FC = () => {
         moveLayer(fromIndex, toIndex);
     }
     setDraggedLayerId(null);
+  };
+
+  // Background Removal Handler
+  const handleRemoveBackground = async () => {
+    if (!selectedLayer || selectedLayer.type === 'text' || !selectedLayer.src) return;
+
+    if (isProcessingBgRemoval) return;
+
+    setIsProcessingBgRemoval(true);
+    try {
+      const response = await aiManager.removeBackground({
+        provider: aiManager.getDefaultProvider(),
+        model: 'stable-image-ultra', // Default model for better quality
+        mode: 'background-removal',
+        prompt: 'Remove background, make transparent',
+        sourceImage: selectedLayer.src,
+      });
+
+      if (response.success && response.images.length > 0) {
+        // Update the layer with the new background-removed image
+        updateLayer(selectedLayer.id, {
+          src: response.images[0].base64
+        });
+      } else {
+        alert('Failed to remove background. Please ensure you have configured an AI provider with API key.');
+      }
+    } catch (error) {
+      console.error('Background removal error:', error);
+      alert('Error removing background. Please check your internet connection and API configuration.');
+    } finally {
+      setIsProcessingBgRemoval(false);
+    }
+  };
+
+  // Manual Background Removal Handler
+  const handleApplyBackgroundRemoval = (resultImage: string) => {
+    if (selectedLayer) {
+      updateLayer(selectedLayer.id, { src: resultImage });
+    }
   };
 
   return (
@@ -387,6 +430,39 @@ export const LayerPanel: React.FC = () => {
                              Invert
                           </button>
                        </div>
+
+                       {/* Background Removal */}
+                       <div className="pt-2">
+                          <div className="space-y-2">
+                            {/* Manual Background Removal */}
+                            <button
+                              onClick={() => selectedLayer && setIsBgRemovalDialogOpen(true)}
+                              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded border text-xs font-bold transition-all bg-green-50 hover:bg-green-100 text-green-700 border-green-300 hover:border-green-400"
+                              title="Manual background removal with color selection"
+                            >
+                              <Wand2 size={14} className="stroke-current" />
+                              Manual Remove
+                            </button>
+
+                            {/* AI Background Removal */}
+                            <button
+                              onClick={handleRemoveBackground}
+                              disabled={isProcessingBgRemoval}
+                              className={`w-full flex items-center justify-center gap-2 py-2 px-3 rounded border text-xs font-bold transition-all ${
+                                  isProcessingBgRemoval
+                                    ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                                    : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-300 hover:border-blue-400'
+                              }`}
+                              title="Remove background using AI"
+                            >
+                              <Eraser size={14} className={isProcessingBgRemoval ? '' : 'stroke-current'} />
+                              {isProcessingBgRemoval ? 'Processing...' : 'AI Remove'}
+                            </button>
+                            <p className="text-[10px] text-gray-400 mt-1">
+                              Manual: Color-based selection | AI: Automatic
+                            </p>
+                          </div>
+                       </div>
                     </div>
                  )}
 
@@ -530,6 +606,14 @@ export const LayerPanel: React.FC = () => {
            )}
         </div>
       )}
+
+      {/* Background Removal Dialog */}
+      <BackgroundRemovalDialog
+        isOpen={isBgRemovalDialogOpen && !!selectedLayer?.src}
+        imageSrc={selectedLayer?.src || ''}
+        onClose={() => setIsBgRemovalDialogOpen(false)}
+        onApply={handleApplyBackgroundRemoval}
+      />
     </div>
   );
 };
