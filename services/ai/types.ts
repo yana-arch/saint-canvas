@@ -31,7 +31,8 @@ export interface PricingInfo {
 }
 
 export interface RateLimitConfig {
-  requestsPerMinute: number;
+  requestsPerWindow: number;
+  windowMs: number;  // Time window in milliseconds (e.g., 60000 for 1 minute)
   requestsPerDay?: number;
   imagesPerRequest: number;
 }

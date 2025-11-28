@@ -15,14 +15,32 @@ import { StabilityAIProvider } from './providers/StabilityAIProvider';
 import { ReplicateProvider } from './providers/ReplicateProvider';
 import { TogetherAIProvider } from './providers/TogetherAIProvider';
 
+interface RateLimitEntry {
+  timestamp: number;
+  count: number;
+}
+
+interface QueuedRequest {
+  request: GenerationRequest;
+  resolve: (response: GenerationResponse) => void;
+  reject: (error: Error) => void;
+  priority: 'high' | 'normal';
+}
+
 class AIProviderManager {
   private providers: Map<AIProviderType, BaseAIProvider> = new Map();
   private credentials: Map<AIProviderType, string> = new Map();
   private defaultProvider: AIProviderType = 'google-gemini';
 
+  // Rate limiting data
+  private rateLimits: Map<AIProviderType, RateLimitEntry[]> = new Map();
+  private requestQueues: Map<AIProviderType, QueuedRequest[]> = new Map();
+  private processingQueue: boolean = false;
+
   constructor() {
     this.initializeProviders();
     this.loadStoredCredentials();
+    this.startQueueProcessor();
   }
 
   private initializeProviders(): void {
@@ -104,9 +122,79 @@ class AIProviderManager {
     return localStorage.getItem('default-ai-provider') as AIProviderType || this.defaultProvider;
   }
 
-  async generate(request: GenerationRequest): Promise<GenerationResponse> {
+  // Rate Limiting Methods
+  private startQueueProcessor(): void {
+    setInterval(() => {
+      this.processQueues();
+    }, 1000); // Process queues every second
+  }
+
+  private async processQueues(): Promise<void> {
+    if (this.processingQueue) return;
+    this.processingQueue = true;
+
+    try {
+      for (const [providerType, queue] of this.requestQueues.entries()) {
+        if (queue.length === 0) continue;
+
+        // Check if we can process a request for this provider
+        if (this.canMakeRequest(providerType)) {
+          const queuedRequest = queue.shift(); // Take first request
+          if (queuedRequest) {
+            try {
+              const response = await this.executeRequest(queuedRequest.request);
+              queuedRequest.resolve(response);
+            } catch (error) {
+              queuedRequest.reject(error as Error);
+            }
+          }
+        }
+      }
+    } finally {
+      this.processingQueue = false;
+    }
+  }
+
+  private canMakeRequest(providerType: AIProviderType): boolean {
+    const provider = this.providers.get(providerType);
+    if (!provider) return false;
+
+    const config = provider.getConfig();
+    if (!config.rateLimit) return true; // No rate limit configured
+
+    const entries = this.rateLimits.get(providerType) || [];
+    const now = Date.now();
+    const windowMs = config.rateLimit.windowMs;
+
+    // Clean old entries outside the window
+    const validEntries = entries.filter(entry => now - entry.timestamp < windowMs);
+    this.rateLimits.set(providerType, validEntries);
+
+    // Check if we're under the limit
+    const totalRequests = validEntries.reduce((sum, entry) => sum + entry.count, 0);
+    return totalRequests < config.rateLimit.requestsPerWindow;
+  }
+
+  private recordRequest(providerType: AIProviderType): void {
+    const entries = this.rateLimits.get(providerType) || [];
+    const now = Date.now();
+
+    // Find or create entry for current minute
+    const minuteTimestamp = Math.floor(now / 60000) * 60000; // Round to nearest minute
+    const existingEntry = entries.find(entry => entry.timestamp === minuteTimestamp);
+
+    if (existingEntry) {
+      existingEntry.count++;
+    } else {
+      entries.push({ timestamp: minuteTimestamp, count: 1 });
+    }
+
+    this.rateLimits.set(providerType, entries);
+  }
+
+  private async executeRequest(request: GenerationRequest): Promise<GenerationResponse> {
+    // Validate provider
     const provider = this.providers.get(request.provider);
-    
     if (!provider) {
       throw new Error(`Provider ${request.provider} not found`);
     }
@@ -114,6 +202,9 @@ class AIProviderManager {
     if (!provider.isConfigured()) {
       throw new Error(`Provider ${request.provider} is not configured. Please add API key.`);
     }
+
+    // Record the request for rate limiting
+    this.recordRequest(request.provider);
 
     // Route to appropriate method based on mode
     switch (request.mode) {
@@ -124,6 +215,51 @@ class AIProviderManager {
       default:
         return provider.generate(request);
     }
+  }
+
+  getRateLimitStatus(providerType: AIProviderType): { currentUsage: number; limit: number; remainingTime: number } | null {
+    const provider = this.providers.get(providerType);
+    if (!provider) return null;
+
+    const config = provider.getConfig();
+    if (!config.rateLimit) return null;
+
+    const entries = this.rateLimits.get(providerType) || [];
+    const now = Date.now();
+    const windowMs = config.rateLimit.windowMs;
+
+    // Clean old entries outside the window
+    const validEntries = entries.filter(entry => now - entry.timestamp < windowMs);
+
+    const totalRequests = validEntries.reduce((sum, entry) => sum + entry.count, 0);
+    const remainingTime = validEntries.length > 0
+      ? Math.max(0, windowMs - (now - validEntries[0].timestamp))
+      : 0;
+
+    return {
+      currentUsage: totalRequests,
+      limit: config.rateLimit.requestsPerWindow,
+      remainingTime
+    };
+  }
+
+  async generate(request: GenerationRequest): Promise<GenerationResponse> {
+    return new Promise((resolve, reject) => {
+      const queuedRequest: QueuedRequest = {
+        request,
+        resolve,
+        reject,
+        priority: 'normal'
+      };
+
+      // Get or create queue for this provider
+      const queue = this.requestQueues.get(request.provider) || [];
+      queue.push(queuedRequest);
+      this.requestQueues.set(request.provider, queue);
+
+      // Try to process immediately if possible
+      setTimeout(() => this.processQueues(), 0);
+    });
   }
 }
 

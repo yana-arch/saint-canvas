@@ -34,7 +34,8 @@ const GEMINI_CONFIG: AIProviderConfig = {
   ],
   requiresApiKey: true,
   rateLimit: {
-    requestsPerMinute: 10,
+    requestsPerWindow: 10,
+    windowMs: 60000, // 1 minute
     imagesPerRequest: 1,
   },
 };

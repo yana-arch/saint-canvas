@@ -43,7 +43,8 @@ const OPENAI_CONFIG: AIProviderConfig = {
     billingUrl: 'https://platform.openai.com/usage',
   },
   rateLimit: {
-    requestsPerMinute: 5,
+    requestsPerWindow: 5,
+    windowMs: 60000, // 1 minute
     imagesPerRequest: 4,
   },
 };

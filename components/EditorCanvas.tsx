@@ -14,6 +14,8 @@ interface CanvasItemProps {
   onSelect: () => void;
   onMultiSelect: () => void;
   onChange: (newAttrs: Partial<Layer>, saveToHistory: boolean) => void;
+  onSnapCheck?: (layer: Layer, x: number, y: number) => { x: number, y: number };
+  onClearSnapping?: () => void;
 }
 
 // Unified component for Image or Text layers
@@ -23,7 +25,9 @@ const CanvasItem: React.FC<CanvasItemProps> = ({
   isMultiSelected,
   onSelect,
   onMultiSelect,
-  onChange
+  onChange,
+  onSnapCheck,
+  onClearSnapping
 }) => {
   const [image] = useImage(layer.src || '', 'anonymous');
   const shapeRef = useRef<any>(null); // Type is roughly Konva.Image | Konva.Text
@@ -88,18 +92,58 @@ const CanvasItem: React.FC<CanvasItemProps> = ({
     shadowOpacity: layer.shadowOpacity ?? 0.5,
     shadowOffset: { x: layer.shadowOffsetX || 0, y: layer.shadowOffsetY || 0 },
     
+    onDragStart: () => {
+      // Clear any existing snapping lines
+      onClearSnapping?.();
+    },
     onDragEnd: (e: any) => {
+      const node = shapeRef.current;
+      if (!node) return;
+
+      // Apply snapping if available
+      let finalX = e.target.x();
+      let finalY = e.target.y();
+
+      if (onSnapCheck) {
+        const snapped = onSnapCheck(layer, finalX, finalY);
+        finalX = snapped.x;
+        finalY = snapped.y;
+
+        // Update the node position if snapped
+        node.x(finalX);
+        node.y(finalY);
+      }
+
       onChange({
-        x: e.target.x(),
-        y: e.target.y(),
+        x: finalX,
+        y: finalY,
       }, true); // Save history on drag end
+    },
+    onTransformStart: () => {
+      // Clear any existing snapping lines
+      onClearSnapping?.();
     },
     onTransformEnd: (e: any) => {
       const node = shapeRef.current;
       if (!node) return;
+
+      let finalX = node.x();
+      let finalY = node.y();
+
+      // Apply snapping to transform position
+      if (onSnapCheck) {
+        const snapped = onSnapCheck(layer, finalX, finalY);
+        finalX = snapped.x;
+        finalY = snapped.y;
+
+        // Update the node position if snapped
+        node.x(finalX);
+        node.y(finalY);
+      }
+
       onChange({
-        x: node.x(),
-        y: node.y(),
+        x: finalX,
+        y: finalY,
         rotation: node.rotation(),
         scaleX: node.scaleX(),
         scaleY: node.scaleY(),
@@ -214,6 +258,118 @@ export const EditorCanvas: React.FC<{ stageRef: React.RefObject<Konva.Stage> }> 
   // Center the workspace content based on zoom
   const workAreaX = (stageWidth - canvasSettings.width * zoom) / 2;
   const workAreaY = (stageHeight - canvasSettings.height * zoom) / 2;
+
+  // Snapping system
+  const [snappingLines, setSnappingLines] = useState<{
+    vertical?: number;
+    horizontal?: number;
+  }>({});
+
+  const SNAP_THRESHOLD = 8; // pixels
+
+  // Calculate snap points: canvas center lines and other layer edges
+  const calculateSnapPoints = (currentLayer: Layer, excludeId?: string) => {
+    if (!canvasSettings.width || !canvasSettings.height) return [];
+
+    const points: { x?: number; y?: number; type: 'center' | 'edge' }[] = [];
+
+    // Canvas center lines
+    points.push(
+      { x: canvasSettings.width / 2, type: 'center' },
+      { y: canvasSettings.height / 2, type: 'center' }
+    );
+
+    // Other layer edges
+    layers
+      .filter(layer => layer.id !== excludeId)
+      .forEach(layer => {
+        points.push(
+          { x: layer.x, type: 'edge' },
+          { x: layer.x + layer.width, type: 'edge' },
+          { y: layer.y, type: 'edge' },
+          { y: layer.y + layer.height, type: 'edge' },
+          // Center points of other layers
+          { x: layer.x + layer.width / 2, type: 'center' },
+          { y: layer.y + layer.height / 2, type: 'center' }
+        );
+      });
+
+    return points;
+  };
+
+  const checkSnapping = (layer: Layer, newX: number, newY: number) => {
+    const snapPoints = calculateSnapPoints(layer, layer.id);
+    const layerCenterX = newX + layer.width / 2;
+    const layerCenterY = newY + layer.height / 2;
+    const layerLeft = newX;
+    const layerRight = newX + layer.width;
+    const layerTop = newY;
+    const layerBottom = newY + layer.height;
+
+    let snappedX = newX;
+    let snappedY = newY;
+    let verticalLine: number | undefined;
+    let horizontalLine: number | undefined;
+
+    // Check horizontal snapping (x-axis)
+    for (const point of snapPoints) {
+      if (point.x !== undefined) {
+        // Layer center to snap point
+        if (Math.abs(layerCenterX - point.x) < SNAP_THRESHOLD) {
+          snappedX = point.x - layer.width / 2;
+          verticalLine = point.x;
+          break;
+        }
+        // Layer left edge to snap point
+        if (Math.abs(layerLeft - point.x) < SNAP_THRESHOLD) {
+          snappedX = point.x;
+          verticalLine = point.x;
+          break;
+        }
+        // Layer right edge to snap point
+        if (Math.abs(layerRight - point.x) < SNAP_THRESHOLD) {
+          snappedX = point.x - layer.width;
+          verticalLine = point.x;
+          break;
+        }
+      }
+    }
+
+    // Check vertical snapping (y-axis)
+    for (const point of snapPoints) {
+      if (point.y !== undefined) {
+        // Layer center to snap point
+        if (Math.abs(layerCenterY - point.y) < SNAP_THRESHOLD) {
+          snappedY = point.y - layer.height / 2;
+          horizontalLine = point.y;
+          break;
+        }
+        // Layer top edge to snap point
+        if (Math.abs(layerTop - point.y) < SNAP_THRESHOLD) {
+          snappedY = point.y;
+          horizontalLine = point.y;
+          break;
+        }
+        // Layer bottom edge to snap point
+        if (Math.abs(layerBottom - point.y) < SNAP_THRESHOLD) {
+          snappedY = point.y - layer.height;
+          horizontalLine = point.y;
+          break;
+        }
+      }
+    }
+
+    setSnappingLines({ vertical: verticalLine, horizontal: horizontalLine });
+
+    // Auto-hide snapping lines after a short delay
+    if (verticalLine !== undefined || horizontalLine !== undefined) {
+      setTimeout(() => {
+        setSnappingLines({});
+      }, 1000);
+    }
+
+    return { x: snappedX, y: snappedY };
+  };
 
   // Handle Drag & Drop
   const handleDragOver = (e: React.DragEvent) => {
@@ -338,8 +494,34 @@ export const EditorCanvas: React.FC<{ stageRef: React.RefObject<Konva.Stage> }> 
                 onSelect={() => selectLayer(layer.id, false)}
                 onMultiSelect={() => selectLayer(layer.id, true)}
                 onChange={(newAttrs, save) => updateLayer(layer.id, newAttrs, save)}
+                onSnapCheck={checkSnapping}
+                onClearSnapping={() => setSnappingLines({})}
               />
             ))}
+
+            {/* Snapping Guide Lines */}
+            {snappingLines.vertical !== undefined && (
+              <Rect
+                x={snappingLines.vertical}
+                y={0}
+                width={1}
+                height={canvasSettings.height}
+                fill="#007acc"
+                opacity={0.8}
+                listening={false}
+              />
+            )}
+            {snappingLines.horizontal !== undefined && (
+              <Rect
+                x={0}
+                y={snappingLines.horizontal}
+                width={canvasSettings.width}
+                height={1}
+                fill="#007acc"
+                opacity={0.8}
+                listening={false}
+              />
+            )}
           </Group>
         </KonvaLayer>
       </Stage>

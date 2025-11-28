@@ -113,6 +113,7 @@ export interface EditorState {
   // Layers
   layers: Layer[];
   selectedLayerId: string | null;
+  selectedLayerIds: string[]; // For multi-select
   
   // History
   past: HistoryState[];
@@ -129,7 +130,7 @@ export interface EditorState {
   updateLayer: (id: string, changes: Partial<Layer>, saveToHistory?: boolean) => void;
   removeLayer: (id: string) => void;
   clearLayers: () => void;
-  selectLayer: (id: string | null) => void;
+  selectLayer: (id: string | null, multiSelect?: boolean) => void;
   moveLayer: (fromIndex: number, toIndex: number) => void;
   toggleLayerVisibility: (id: string) => void;
   toggleLayerLock: (id: string) => void;

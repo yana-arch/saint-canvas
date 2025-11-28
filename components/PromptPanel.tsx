@@ -8,6 +8,8 @@ import {
   Info,
   DollarSign,
   Settings2,
+  AlertTriangle,
+  Clock,
 } from 'lucide-react';
 import { useAIStore } from '../store/aiStore';
 import { useStore } from '../store';
@@ -25,6 +27,51 @@ import Konva from 'konva';
 interface PromptPanelProps {
   stageRef?: React.RefObject<Konva.Stage>;
 }
+
+// Rate Limit Status Component
+const RateLimitStatus: React.FC<{ provider: AIProviderType }> = ({ provider }) => {
+  const rateLimitStatus = aiManager.getRateLimitStatus(provider);
+
+  if (!rateLimitStatus) return null;
+
+  const { currentUsage, limit, remainingTime } = rateLimitStatus;
+  const isApproachingLimit = currentUsage / limit > 0.8;
+  const isNearLimit = currentUsage / limit > 0.9;
+
+  if (!isApproachingLimit) return null;
+
+  return (
+    <div className={`mb-3 p-2 rounded-lg text-xs ${
+      isNearLimit
+        ? 'bg-red-50 border border-red-200'
+        : 'bg-yellow-50 border border-yellow-200'
+    }`}>
+      <div className="flex items-center gap-2">
+        {isNearLimit ? (
+          <AlertTriangle className="w-4 h-4 text-red-600" />
+        ) : (
+          <Clock className="w-4 h-4 text-yellow-600" />
+        )}
+        <span className={`font-medium ${
+          isNearLimit ? 'text-red-800' : 'text-yellow-800'
+        }`}>
+          Rate Limit: {currentUsage}/{limit} requests
+        </span>
+      </div>
+      <div className="text-gray-600 mt-1">
+        {remainingTime > 0 && `${Math.ceil(remainingTime / 1000)}s until reset`}
+      </div>
+      <div className="w-full bg-gray-200 rounded-full h-1 mt-2">
+        <div
+          className={`h-1 rounded-full transition-all ${
+            isNearLimit ? 'bg-red-500' : 'bg-yellow-500'
+          }`}
+          style={{ width: `${Math.min((currentUsage / limit) * 100, 100)}%` }}
+        />
+      </div>
+    </div>
+  );
+};
 
 export const PromptPanel: React.FC<PromptPanelProps> = ({ stageRef }) => {
   const {
@@ -407,6 +454,9 @@ export const PromptPanel: React.FC<PromptPanelProps> = ({ stageRef }) => {
 
       {/* Footer - Generate Button */}
       <div className="p-4 border-t border-holy-200 bg-white">
+        {/* Rate Limit Status */}
+        <RateLimitStatus provider={activeProvider} />
+
         {/* Cost Estimate */}
         {estimatedCost > 0 && (
           <div className="flex items-center justify-between mb-3 text-xs">

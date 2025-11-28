@@ -1,17 +1,81 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { EditorState, Asset, Layer, HistoryState, Template } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
-// Helper to create a snapshot of the current state
+// Helper functions
 const createSnapshot = (state: EditorState): HistoryState => ({
   baseImage: state.baseImage,
   layers: [...state.layers],
   canvasSettings: { ...state.canvasSettings }
 });
 
+// Validate layer data before applying changes
+const validateLayerData = (changes: Partial<Layer>): Partial<Layer> => {
+  const validated: Partial<Layer> = { ...changes };
+
+  // Numeric validations
+  if (changes.x !== undefined && (isNaN(changes.x) || !isFinite(changes.x))) validated.x = 0;
+  if (changes.y !== undefined && (isNaN(changes.y) || !isFinite(changes.y))) validated.y = 0;
+  if (changes.width !== undefined && (changes.width < 1 || isNaN(changes.width))) validated.width = 200;
+  if (changes.height !== undefined && (changes.height < 1 || isNaN(changes.height))) validated.height = 200;
+  if (changes.rotation !== undefined && isNaN(changes.rotation)) validated.rotation = 0;
+
+  // Opacity range 0-1
+  if (changes.opacity !== undefined) {
+    if (changes.opacity < 0) validated.opacity = 0;
+    if (changes.opacity > 1) validated.opacity = 1;
+  }
+
+  // Scale bounds
+  if (changes.scaleX !== undefined && (changes.scaleX < 0.01 || changes.scaleX > 20)) {
+    validated.scaleX = Math.max(0.01, Math.min(20, changes.scaleX));
+  }
+  if (changes.scaleY !== undefined && (changes.scaleY < 0.01 || changes.scaleY > 20)) {
+    validated.scaleY = Math.max(0.01, Math.min(20, changes.scaleY));
+  }
+
+  // FontSize reasonable bounds
+  if (changes.fontSize !== undefined && (changes.fontSize < 6 || changes.fontSize > 500)) {
+    validated.fontSize = Math.max(6, Math.min(500, changes.fontSize));
+  }
+
+  // Blur radius reasonable
+  if (changes.blur !== undefined && changes.blur < 0) validated.blur = 0;
+
+  return validated;
+};
+
+// Auto-save key for localStorage
+const AUTO_SAVE_KEY = 'saintcanvas-draft';
+
 interface ExtendedEditorState extends EditorState {
-  addLayer: (asset: Asset, position?: { x: number; y: number }) => void;
+  addLayer: (asset: Asset, position?: { x: number; y: number }, size?: { width: number; height: number }) => void;
+  recoverDraft: () => boolean; // Returns true if draft was loaded
 }
+
+// Auto-save functionality
+let autoSaveTimeout: NodeJS.Timeout | null = null;
+const AUTO_SAVE_DELAY = 30000; // 30 seconds
+
+const saveToLocalStorage = (state: EditorState) => {
+  try {
+    const draft = {
+      baseImage: state.baseImage,
+      layers: state.layers,
+      canvasSettings: state.canvasSettings,
+      timestamp: Date.now()
+    };
+    localStorage.setItem(AUTO_SAVE_KEY, JSON.stringify(draft));
+  } catch (error) {
+    console.warn('Failed to auto-save draft:', error);
+  }
+};
+
+const scheduleAutoSave = (state: EditorState) => {
+  if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
+  autoSaveTimeout = setTimeout(() => saveToLocalStorage(state), AUTO_SAVE_DELAY);
+};
 
 export const useStore = create<ExtendedEditorState>((set, get) => ({
   baseImage: null,
@@ -23,6 +87,7 @@ export const useStore = create<ExtendedEditorState>((set, get) => ({
   },
   layers: [],
   selectedLayerId: null,
+  selectedLayerIds: [],
   
   past: [],
   future: [],
@@ -74,12 +139,12 @@ export const useStore = create<ExtendedEditorState>((set, get) => ({
      return newState;
   }),
 
-  addLayer: (asset: Asset, position) => set((state) => {
+  addLayer: (asset: Asset, position, size) => set((state) => {
     const snapshot = createSnapshot(state);
-    
-    // Default width/height
-    const defaultW = 200;
-    const defaultH = 200;
+
+    // Use custom size if provided, otherwise default
+    const defaultW = size?.width || 200;
+    const defaultH = size?.height || 200;
 
     // Calculate position: use provided drop position or center
     const x = position ? position.x : state.canvasSettings.width / 2 - (defaultW / 2);
@@ -242,10 +307,10 @@ export const useStore = create<ExtendedEditorState>((set, get) => ({
     };
   }),
 
-  loadProject: (loadedState: HistoryState) => set((state) => {
-    const snapshot = createSnapshot(state);
+  loadProject: (loadedState: HistoryState) => set(() => {
+    // Clear history when loading a new project
     return {
-      past: [...state.past, snapshot],
+      past: [],
       future: [],
       baseImage: loadedState.baseImage,
       layers: loadedState.layers,
@@ -255,19 +320,23 @@ export const useStore = create<ExtendedEditorState>((set, get) => ({
   }),
 
   updateLayer: (id, changes, saveToHistory = true) => set((state) => {
+    // Validate changes before applying
+    const validatedChanges = validateLayerData(changes);
+
     let updateObject: Partial<ExtendedEditorState> = {
-      layers: state.layers.map(l => l.id === id ? { ...l, ...changes } : l)
+      layers: state.layers.map(l => l.id === id ? { ...l, ...validatedChanges } : l)
     };
 
     if (saveToHistory) {
       const snapshot = createSnapshot(state);
+      const newPast = [...state.past, snapshot].slice(-50); // Limit history to 50 steps
       updateObject = {
         ...updateObject,
-        past: [...state.past, snapshot],
+        past: newPast,
         future: []
       };
     }
-    
+
     return updateObject;
   }),
 
@@ -291,7 +360,27 @@ export const useStore = create<ExtendedEditorState>((set, get) => ({
     };
   }),
 
-  selectLayer: (id) => set({ selectedLayerId: id }),
+  selectLayer: (id, multiSelect = false) => set((state) => {
+    if (multiSelect && id) {
+      // Multi-select: toggle the id in selectedLayerIds
+      const isAlreadySelected = state.selectedLayerIds.includes(id);
+      const newSelectedLayerIds = isAlreadySelected
+        ? state.selectedLayerIds.filter(layerId => layerId !== id)
+        : [...state.selectedLayerIds, id];
+
+      return {
+        selectedLayerId: newSelectedLayerIds.length === 1 ? id : null,
+        selectedLayerIds: newSelectedLayerIds
+      };
+    } else {
+      // Single select: deselect if same id, select if different
+      const newId = state.selectedLayerId === id ? null : id;
+      return {
+        selectedLayerId: newId,
+        selectedLayerIds: newId ? [newId] : []
+      };
+    }
+  }),
 
   moveLayer: (fromIndex, toIndex) => set((state) => {
     const snapshot = createSnapshot(state);
@@ -355,7 +444,7 @@ export const useStore = create<ExtendedEditorState>((set, get) => ({
     if (state.future.length === 0) return {};
     const next = state.future[0];
     const newFuture = state.future.slice(1);
-    
+
     const currentSnapshot = createSnapshot(state);
 
     return {
@@ -367,4 +456,39 @@ export const useStore = create<ExtendedEditorState>((set, get) => ({
       selectedLayerId: null,
     };
   }),
+
+  recoverDraft: () => {
+    try {
+      const draftStr = localStorage.getItem(AUTO_SAVE_KEY);
+      if (!draftStr) return false;
+
+      const draft = JSON.parse(draftStr);
+      if (!draft.layers && !draft.baseImage) return false;
+
+      // Load the draft
+      set(() => ({
+        baseImage: draft.baseImage,
+        layers: draft.layers || [],
+        canvasSettings: draft.canvasSettings,
+        past: [],
+        future: [],
+        selectedLayerId: null
+      }));
+
+      // Clear the draft after recovery
+      localStorage.removeItem(AUTO_SAVE_KEY);
+      return true;
+    } catch (error) {
+      console.warn('Failed to recover draft:', error);
+      return false;
+    }
+  },
 }));
+
+// Auto-save subscription
+useStore.subscribe((state) => {
+  // Trigger auto-save on any state change that affects the canvas
+  if (state.layers.length > 0 || state.baseImage) {
+    scheduleAutoSave(state);
+  }
+});
