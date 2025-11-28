@@ -102,7 +102,7 @@ export const ASSETS: Asset[] = [
     name: 'Virgin Mary',
     category: 'saints',
     subCategory: 'Holy Family',
-    src: '../../assets/saints/virgin-mary.png',
+    src: '/assets/saints/virgin-mary.png',
     description: 'Mother of God',
     feastDay: 'Aug 15',
     attributes: ['Blue Mantle', 'Crown', 'Stars']
@@ -112,7 +112,7 @@ export const ASSETS: Asset[] = [
     name: 'Saint Joseph',
     category: 'saints',
     subCategory: 'Holy Family',
-    src: '../../assets/saints/saint-joseph.png',
+    src: '/assets/saints/saint-joseph.png',
     description: 'Patron of the Universal Church',
     feastDay: 'Mar 19',
     attributes: ['Lily', 'Carpenter Tools']
@@ -122,7 +122,7 @@ export const ASSETS: Asset[] = [
     name: 'Saint Peter',
     category: 'saints',
     subCategory: 'Apostles',
-    src: '../../assets/saints/saint-peter.png',
+    src: '/assets/saints/saint-peter.png',
     description: 'The First Pope',
     feastDay: 'Jun 29',
     attributes: ['Keys to Heaven', 'Inverted Cross', 'Papal Tiara']
@@ -132,7 +132,7 @@ export const ASSETS: Asset[] = [
     name: 'Saint Paul',
     category: 'saints',
     subCategory: 'Apostles',
-    src: '../../assets/saints/saint-paul.png',
+    src: '/assets/saints/saint-paul.png',
     description: 'Apostle to the Gentiles',
     feastDay: 'Jun 29',
     attributes: ['Sword', 'Book', 'Scroll']
@@ -142,7 +142,7 @@ export const ASSETS: Asset[] = [
     name: 'St. Francis of Assisi',
     category: 'saints',
     subCategory: 'Founders',
-    src: '../../assets/saints/francis-of-assisi.png',
+    src: '/assets/saints/francis-of-assisi.png',
     description: 'Founder of the Franciscans',
     feastDay: 'Oct 4',
     attributes: ['Brown Habit', 'Stigmata', 'Animals', 'Crucifix']
@@ -152,7 +152,7 @@ export const ASSETS: Asset[] = [
     name: 'St. Thérèse of Lisieux',
     category: 'saints',
     subCategory: 'Doctors',
-    src: '../../assets/saints/therese-of-lisieux.png',
+    src: '/assets/saints/therese-of-lisieux.png',
     description: 'The Little Flower',
     feastDay: 'Oct 1',
     attributes: ['Roses', 'Crucifix']
@@ -162,7 +162,7 @@ export const ASSETS: Asset[] = [
     name: 'St. Anthony of Padua',
     category: 'saints',
     subCategory: 'Doctors',
-    src: '../../assets/saints/anthony-of-padua.png',
+    src: '/assets/saints/anthony-of-padua.png',
     description: 'Patron of Lost Things',
     feastDay: 'Jun 13',
     attributes: ['Child Jesus', 'Lily', 'Book']
@@ -172,7 +172,7 @@ export const ASSETS: Asset[] = [
     name: 'St. Michael Archangel',
     category: 'saints',
     subCategory: 'Angels',
-    src: '../../assets/saints/michael-archangel.png',
+    src: '/assets/saints/michael-archangel.png',
     description: 'Prince of the Heavenly Host',
     feastDay: 'Sep 29',
     attributes: ['Sword', 'Scales', 'Demon']
@@ -184,7 +184,7 @@ export const ASSETS: Asset[] = [
     name: 'Alb',
     category: 'vestments',
     subCategory: 'Base',
-    src: '../../assets/vests/alb.png',
+    src: '/assets/vests/alb.png',
     description: 'White vestment reaching to the feet',
     symbolism: 'Purity of Soul'
   },
@@ -193,7 +193,7 @@ export const ASSETS: Asset[] = [
     name: 'White Chasuble',
     category: 'vestments',
     subCategory: 'Outer',
-    src: '../../assets/vests/white-chasuble.png',
+    src: '/assets/vests/white-chasuble.png',
     description: 'For Easter, Christmas, and Saints',
     symbolism: LITURGICAL_COLORS.white.meaning
   },
@@ -202,7 +202,7 @@ export const ASSETS: Asset[] = [
     name: 'Red Chasuble',
     category: 'vestments',
     subCategory: 'Outer',
-    src: '../../assets/vests/red-chasuble.png',
+    src: '/assets/vests/red-chasuble.png',
     description: 'For Pentecost and Martyrs',
     symbolism: LITURGICAL_COLORS.red.meaning
   },
@@ -211,7 +211,7 @@ export const ASSETS: Asset[] = [
     name: 'Green Chasuble',
     category: 'vestments',
     subCategory: 'Outer',
-    src: '../../assets/vests/green-chasuble.png',
+    src: '/assets/vests/green-chasuble.png',
     description: 'For Ordinary Time',
     symbolism: LITURGICAL_COLORS.green.meaning
   },
@@ -220,7 +220,7 @@ export const ASSETS: Asset[] = [
     name: 'Violet Chasuble',
     category: 'vestments',
     subCategory: 'Outer',
-    src: '../../assets/vests/violet-chasuble.png',
+    src: '/assets/vests/violet-chasuble.png',
     description: 'For Advent and Lent',
     symbolism: LITURGICAL_COLORS.violet.meaning
   },
@@ -229,7 +229,7 @@ export const ASSETS: Asset[] = [
     name: 'Rose Chasuble',
     category: 'vestments',
     subCategory: 'Outer',
-    src: '../../assets/vests/rose-chasuble.png',
+    src: '/assets/vests/rose-chasuble.png',
     description: 'For Gaudete and Laetare Sundays',
     symbolism: LITURGICAL_COLORS.rose.meaning
   },
@@ -238,7 +238,7 @@ export const ASSETS: Asset[] = [
     name: 'Black Chasuble',
     category: 'vestments',
     subCategory: 'Outer',
-    src: '../../assets/vests/black-chasuble.png',
+    src: '/assets/vests/black-chasuble.png',
     description: 'For All Souls Day',
     symbolism: LITURGICAL_COLORS.black.meaning
   },
@@ -247,7 +247,7 @@ export const ASSETS: Asset[] = [
     name: 'Gold Chasuble',
     category: 'vestments',
     subCategory: 'Outer',
-    src: '../../assets/vests/gold-chasuble.png',
+    src: '/assets/vests/gold-chasuble.png',
     description: 'For Solemnities',
     symbolism: LITURGICAL_COLORS.gold.meaning
   },
@@ -256,7 +256,7 @@ export const ASSETS: Asset[] = [
     name: 'Priest Stole',
     category: 'vestments',
     subCategory: 'Accessory',
-    src: '../../assets/vests/priest-stole.png',
+    src: '/assets/vests/priest-stole.png',
     description: 'Symbol of priestly authority',
     symbolism: 'Yoke of Christ'
   },
@@ -265,7 +265,7 @@ export const ASSETS: Asset[] = [
     name: 'Dalmatic',
     category: 'vestments',
     subCategory: 'Outer',
-    src: '../../assets/vests/dalmatic.png',
+    src: '/assets/vests/dalmatic.png',
     description: 'Vestment of the Deacon',
     symbolism: 'Joy and Service'
   },
@@ -274,7 +274,7 @@ export const ASSETS: Asset[] = [
     name: 'Gold Cope',
     category: 'vestments',
     subCategory: 'Outer',
-    src: '../../assets/vests/gold-cope.png',
+    src: '/assets/vests/gold-cope.png',
     description: 'Ceremonial cape for processions',
     symbolism: LITURGICAL_COLORS.gold.meaning
   },
@@ -283,7 +283,7 @@ export const ASSETS: Asset[] = [
     name: 'Precious Miter',
     category: 'vestments',
     subCategory: 'Headwear',
-    src: '../../assets/vests/precious-miter.png',
+    src: '/assets/vests/precious-miter.png',
     description: "Bishop's headwear"
   },
   {
@@ -291,7 +291,7 @@ export const ASSETS: Asset[] = [
     name: 'Brown Scapular',
     category: 'vestments',
     subCategory: 'Devotional',
-    src: '../../assets/vests/brown-scapular.png',
+    src: '/assets/vests/brown-scapular.png',
     description: 'Our Lady of Mount Carmel'
   },
 
@@ -301,7 +301,7 @@ export const ASSETS: Asset[] = [
     name: 'High Altar',
     category: 'backgrounds',
     subCategory: 'Interior',
-    src: '../../assets/backgrounds/high-altar.png',
+    src: '/assets/backgrounds/high-altar.png',
     description: 'Classic Cathedral Altar'
   },
   {
@@ -309,7 +309,7 @@ export const ASSETS: Asset[] = [
     name: 'Church Nave',
     category: 'backgrounds',
     subCategory: 'Interior',
-    src: '../../assets/backgrounds/church-nave.png',
+    src: '/assets/backgrounds/church-nave.png',
     description: 'View down the aisle'
   },
   {
@@ -317,7 +317,7 @@ export const ASSETS: Asset[] = [
     name: 'Rose Window',
     category: 'backgrounds',
     subCategory: 'Decorative',
-    src: '../../assets/backgrounds/rose-window.png',
+    src: '/assets/backgrounds/rose-window.png',
     description: 'Gothic Stained Glass'
   },
   {
@@ -325,7 +325,7 @@ export const ASSETS: Asset[] = [
     name: 'Blue Glass',
     category: 'backgrounds',
     subCategory: 'Decorative',
-    src: '../../assets/backgrounds/blue-glass.png',
+    src: '/assets/backgrounds/blue-glass.png',
     description: 'Marian Theme Glass'
   },
   {
@@ -333,7 +333,7 @@ export const ASSETS: Asset[] = [
     name: 'Heavenly Clouds',
     category: 'backgrounds',
     subCategory: 'Spiritual',
-    src: '../../assets/backgrounds/heavenly-clouds.png',
+    src: '/assets/backgrounds/heavenly-clouds.png',
     description: 'Ethereal atmosphere'
   },
   {
@@ -341,7 +341,7 @@ export const ASSETS: Asset[] = [
     name: 'Golden Glory',
     category: 'backgrounds',
     subCategory: 'Spiritual',
-    src: '../../assets/backgrounds/golden-glory.png',
+    src: '/assets/backgrounds/golden-glory.png',
     description: 'Divine Light'
   },
   {
@@ -349,7 +349,7 @@ export const ASSETS: Asset[] = [
     name: "St. Peter's Square",
     category: 'backgrounds',
     subCategory: 'Location',
-    src: '../../assets/backgrounds/st-peter-square.png',
+    src: '/assets/backgrounds/st-peter-square.png',
     description: 'Vatican City'
   },
   {
@@ -357,7 +357,7 @@ export const ASSETS: Asset[] = [
     name: 'Holy Land',
     category: 'backgrounds',
     subCategory: 'Location',
-    src: '../../assets/backgrounds/holy-land.png',
+    src: '/assets/backgrounds/holy-land.png',
     description: 'Jerusalem Landscape'
   },
 
@@ -367,7 +367,7 @@ export const ASSETS: Asset[] = [
     name: 'Wooden Crucifix',
     category: 'objects',
     subCategory: 'Liturgical',
-    src: '../../assets/objects/wooden-crucifix.png',
+    src: '/assets/objects/wooden-crucifix.png',
     description: 'Symbol of Sacrifice'
   },
   {
@@ -375,7 +375,7 @@ export const ASSETS: Asset[] = [
     name: 'Gold Chalice',
     category: 'objects',
     subCategory: 'Liturgical',
-    src: '../../assets/objects/gold-chalice.png',
+    src: '/assets/objects/gold-chalice.png',
     description: 'Sacred Vessel'
   },
   {
@@ -383,7 +383,7 @@ export const ASSETS: Asset[] = [
     name: 'Monstrance',
     category: 'objects',
     subCategory: 'Liturgical',
-    src: '../../assets/objects/monstrance.png',
+    src: '/assets/objects/monstrance.png',
     description: 'For Eucharistic Adoration'
   },
   {
@@ -391,7 +391,7 @@ export const ASSETS: Asset[] = [
     name: 'Altar Candle',
     category: 'objects',
     subCategory: 'Liturgical',
-    src: '../../assets/objects/altar-candles.png',
+    src: '/assets/objects/altar-candles.png',
     description: 'Light of Christ'
   },
   {
@@ -399,7 +399,7 @@ export const ASSETS: Asset[] = [
     name: 'Paschal Candle',
     category: 'objects',
     subCategory: 'Liturgical',
-    src: '../../assets/objects/paschal-candle.png',
+    src: '/assets/objects/paschal-candle.png',
     description: 'Alpha and Omega'
   },
   {
@@ -407,7 +407,7 @@ export const ASSETS: Asset[] = [
     name: 'Thurible',
     category: 'objects',
     subCategory: 'Liturgical',
-    src: '../../assets/objects/thurible.png',
+    src: '/assets/objects/thurible.png',
     description: 'Incense Burner'
   },
   {
@@ -415,7 +415,7 @@ export const ASSETS: Asset[] = [
     name: 'Holy Bible',
     category: 'objects',
     subCategory: 'Books',
-    src: '../../assets/objects/holy-bible.png',
+    src: '/assets/objects/holy-bible.png',
     description: 'Word of God'
   },
   {
@@ -423,7 +423,7 @@ export const ASSETS: Asset[] = [
     name: 'Rosary',
     category: 'objects',
     subCategory: 'Devotional',
-    src: '../../assets/objects/rosary.png',
+    src: '/assets/objects/rosary.png',
     description: 'Marian Devotion'
   },
   {
@@ -431,7 +431,7 @@ export const ASSETS: Asset[] = [
     name: 'Miraculous Medal',
     category: 'objects',
     subCategory: 'Marian',
-    src: '../../assets/objects/miraculous-medal.png',
+    src: '/assets/objects/miraculous-medal.png',
     description: 'O Mary conceived without sin'
   },
   {
@@ -439,7 +439,7 @@ export const ASSETS: Asset[] = [
     name: 'Holy Spirit Dove',
     category: 'objects',
     subCategory: 'Symbols',
-    src: '../../assets/objects/holy-spirit-dove.png',
+    src: '/assets/objects/holy-spirit-dove.png',
     description: 'Symbol of Peace and Spirit'
   },
   {
@@ -447,7 +447,7 @@ export const ASSETS: Asset[] = [
     name: 'Golden Halo',
     category: 'objects',
     subCategory: 'Effects',
-    src: '../../assets/objects/golden-halo.png',
+    src: '/assets/objects/golden-halo.png',
     description: 'Sign of Sanctity'
   },
   {
@@ -455,7 +455,7 @@ export const ASSETS: Asset[] = [
     name: 'Cruciform Halo',
     category: 'objects',
     subCategory: 'Effects',
-    src: '../../assets/objects/cruciform-halo.png',
+    src: '/assets/objects/cruciform-halo.png',
     description: 'For Christ'
   },
   {
@@ -463,7 +463,7 @@ export const ASSETS: Asset[] = [
     name: 'Divine Rays',
     category: 'objects',
     subCategory: 'Effects',
-    src: '../../assets/objects/divine-rays.png',
+    src: '/assets/objects/divine-rays.png',
     description: 'Light from Heaven'
   },
   {
@@ -471,7 +471,7 @@ export const ASSETS: Asset[] = [
     name: 'White Lily',
     category: 'objects',
     subCategory: 'Nature',
-    src: '../../assets/objects/white-lily.png',
+    src: '/assets/objects/white-lily.png',
     description: 'Symbol of Purity'
   },
   {
@@ -479,7 +479,7 @@ export const ASSETS: Asset[] = [
     name: 'Red Rose',
     category: 'objects',
     subCategory: 'Nature',
-    src: '../../assets/objects/red-rose.png',
+    src: '/assets/objects/red-rose.png',
     description: 'Symbol of Martyrdom'
   }
 ];
