@@ -10,16 +10,16 @@ import {
 const REPLICATE_CONFIG: AIProviderConfig = {
   id: 'replicate',
   name: 'Replicate',
-  description: 'Access to Flux, SDXL, and many open-source models',
+  description: 'Access to Flux, SDXL, and advanced image editing models',
   icon: 'replicate',
-  supportedModes: ['text-to-image'],
-  supportedSizes: ['1024x1024'],
+  supportedModes: ['text-to-image', 'image-to-image', 'inpainting', 'outpainting'],
+  supportedSizes: ['512x512', '768x768', '1024x1024'],
   models: [
     {
       id: 'black-forest-labs/flux-schnell',
       name: 'Flux Schnell',
       description: 'Fast generation, good quality',
-      capabilities: ['text-to-image'],
+      capabilities: ['text-to-image', 'image-to-image'],
       defaultSize: '1024x1024',
       maxImages: 1,
       estimatedTime: 5,
@@ -28,11 +28,31 @@ const REPLICATE_CONFIG: AIProviderConfig = {
     {
       id: 'black-forest-labs/flux-dev',
       name: 'Flux Dev',
-      capabilities: ['text-to-image'],
+      capabilities: ['text-to-image', 'image-to-image'],
       defaultSize: '1024x1024',
       maxImages: 1,
       estimatedTime: 20,
       costPerImage: 0.025,
+    },
+    {
+      id: 'black-forest-labs/flux-fill-pro',
+      name: 'Flux Fill Pro',
+      description: 'Advanced inpainting and outpainting',
+      capabilities: ['image-to-image', 'inpainting', 'outpainting'],
+      defaultSize: '1024x1024',
+      maxImages: 1,
+      estimatedTime: 15,
+      costPerImage: 0.02,
+    },
+    {
+      id: 'black-forest-labs/flux-dev-inpainting',
+      name: 'Flux Dev Inpainting',
+      description: 'Precise inpainting for photo editing',
+      capabilities: ['image-to-image', 'inpainting'],
+      defaultSize: '1024x1024',
+      maxImages: 1,
+      estimatedTime: 25,
+      costPerImage: 0.035,
     }
   ],
   requiresApiKey: true,
@@ -42,7 +62,8 @@ const REPLICATE_CONFIG: AIProviderConfig = {
     billingUrl: 'https://replicate.com/account/billing',
   },
   rateLimit: {
-    requestsPerMinute: 60,
+    requestsPerWindow: 60,
+    windowMs: 60000, // 1 minute window
     imagesPerRequest: 1,
   },
 };
@@ -78,13 +99,44 @@ export class ReplicateProvider extends BaseAIProvider {
 
     try {
       const enhancedPrompt = this.enhancePrompt(request.prompt, request.style);
-      
-      const input = {
-          prompt: enhancedPrompt,
-          go_fast: true,
-          output_format: 'png',
-          aspect_ratio: '1:1'
+
+      // Build input parameters based on model and mode
+      const input: any = {
+        output_format: 'png'
       };
+
+      // Handle different editing modes
+      if (request.mode === 'image-to-image' && request.sourceImage) {
+        input.image = request.sourceImage; // Replicate expects data URL or blob URL
+        input.prompt = enhancedPrompt;
+        input.image_to_image_strength = request.strength || 0.75;
+      } else if ((request.mode === 'inpainting' || request.mode === 'outpainting') && request.sourceImage) {
+        if (request.model.includes('inpainting') || request.model.includes('fill')) {
+          input.image = request.sourceImage;
+          input.prompt = enhancedPrompt;
+          input.mask = request.maskImage;
+          input.strength = request.strength || 0.8;
+
+          if (request.model.includes('fill-pro')) {
+            input.mask_prompt = request.maskImage ? "user mask" : "subject";
+          }
+        } else {
+          // Fallback to image-to-image for models that don't support inpainting
+          input.image = request.sourceImage;
+          input.prompt = enhancedPrompt;
+          input.image_to_image_strength = request.strength || 0.75;
+        }
+      } else {
+        // Text-to-image
+        input.prompt = enhancedPrompt;
+        if (request.model.includes('flux-schnell')) {
+          input.go_fast = true;
+          input.num_inference_steps = 4;
+        } else if (request.model.includes('flux-dev')) {
+          input.num_inference_steps = request.steps || 28;
+        }
+        input.aspect_ratio = request.aspectRatio || '1:1';
+      }
 
       // Create prediction
       const createResponse = await fetch(`${this.baseUrl}/models/${request.model}/predictions`, {
@@ -102,19 +154,19 @@ export class ReplicateProvider extends BaseAIProvider {
       }
 
       const prediction = await createResponse.json();
-      
+
       // Poll for result
       const result = await this.pollPrediction(prediction.id);
-      
+
       if (result.status === 'failed') {
         throw new Error(result.error || 'Generation failed');
       }
 
       const outputs = Array.isArray(result.output) ? result.output : [result.output];
-      
+
       const images: GeneratedImage[] = outputs.map((url: string) => ({
         id: crypto.randomUUID(),
-        url, 
+        url,
         width: request.width || 1024,
         height: request.height || 1024,
       }));
@@ -123,6 +175,14 @@ export class ReplicateProvider extends BaseAIProvider {
     } catch (error) {
       return this.createErrorResponse(error as Error, request);
     }
+  }
+
+  async editImage(request: GenerationRequest): Promise<GenerationResponse> {
+    return this.generate({ ...request, mode: 'image-to-image' });
+  }
+
+  async inpaint(request: GenerationRequest): Promise<GenerationResponse> {
+    return this.generate({ ...request, mode: 'inpainting' });
   }
 
   private async pollPrediction(id: string, maxAttempts = 60): Promise<any> {

@@ -10,16 +10,16 @@ import {
 const TOGETHER_CONFIG: AIProviderConfig = {
   id: 'together-ai',
   name: 'Together AI',
-  description: 'Fast and affordable image generation',
+  description: 'Fast and affordable image generation with editing',
   icon: 'together',
-  supportedModes: ['text-to-image'],
+  supportedModes: ['text-to-image', 'image-to-image', 'inpainting'],
   supportedSizes: ['512x512', '768x768', '1024x1024'],
   models: [
     {
       id: 'black-forest-labs/FLUX.1-schnell-Free',
       name: 'Flux Schnell (Free)',
       description: 'Free tier, fast generation',
-      capabilities: ['text-to-image'],
+      capabilities: ['text-to-image', 'image-to-image'],
       defaultSize: '1024x1024',
       maxImages: 4,
       estimatedTime: 5,
@@ -28,11 +28,21 @@ const TOGETHER_CONFIG: AIProviderConfig = {
     {
       id: 'black-forest-labs/FLUX.1.1-pro',
       name: 'Flux 1.1 Pro',
-      capabilities: ['text-to-image'],
+      capabilities: ['text-to-image', 'image-to-image', 'inpainting'],
       defaultSize: '1024x1024',
       maxImages: 1,
       estimatedTime: 10,
       costPerImage: 0.04,
+    },
+    {
+      id: 'black-forest-labs/FLUX.1-dev-Inpainting',
+      name: 'Flux Dev Inpainting',
+      description: 'Precise image editing and inpainting',
+      capabilities: ['image-to-image', 'inpainting'],
+      defaultSize: '1024x1024',
+      maxImages: 1,
+      estimatedTime: 15,
+      costPerImage: 0.08,
     }
   ],
   requiresApiKey: true,
@@ -43,7 +53,8 @@ const TOGETHER_CONFIG: AIProviderConfig = {
     billingUrl: 'https://api.together.xyz/settings/billing',
   },
   rateLimit: {
-    requestsPerMinute: 60,
+    requestsPerWindow: 60,
+    windowMs: 60000, // 1 minute window
     imagesPerRequest: 4,
   },
 };
@@ -79,21 +90,37 @@ export class TogetherAIProvider extends BaseAIProvider {
 
     try {
       const enhancedPrompt = this.enhancePrompt(request.prompt, request.style);
-      
+
+      let body: any = {
+        model: request.model,
+        prompt: enhancedPrompt,
+        width: request.width || 1024,
+        height: request.height || 1024,
+        n: request.numImages || 1,
+        response_format: 'b64_json',
+      };
+
+      // Handle image-to-image editing
+      if ((request.mode === 'image-to-image' || request.mode === 'inpainting') && request.sourceImage) {
+        if (request.model.includes('Inpainting') && request.maskImage && request.mode === 'inpainting') {
+          // For inpainting models with mask
+          body.image = request.sourceImage;
+          body.mask = request.maskImage;
+          body.strength = request.strength || 0.8;
+        } else if (request.model.includes('FLUX') && request.mode === 'image-to-image') {
+          // Image-to-image for Flux models
+          body.image = request.sourceImage;
+          body.strength = request.strength || 0.75;
+        }
+      }
+
       const response = await fetch(`${this.baseUrl}/images/generations`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          model: request.model,
-          prompt: enhancedPrompt,
-          width: request.width || 1024,
-          height: request.height || 1024,
-          n: request.numImages || 1,
-          response_format: 'b64_json',
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {
@@ -102,7 +129,7 @@ export class TogetherAIProvider extends BaseAIProvider {
       }
 
       const data = await response.json();
-      
+
       const images: GeneratedImage[] = data.data.map((img: any) => ({
         id: crypto.randomUUID(),
         base64: `data:image/png;base64,${img.b64_json}`,
@@ -115,6 +142,14 @@ export class TogetherAIProvider extends BaseAIProvider {
     } catch (error) {
       return this.createErrorResponse(error as Error, request);
     }
+  }
+
+  async editImage(request: GenerationRequest): Promise<GenerationResponse> {
+    return this.generate({ ...request, mode: 'image-to-image' });
+  }
+
+  async inpaint(request: GenerationRequest): Promise<GenerationResponse> {
+    return this.generate({ ...request, mode: 'inpainting' });
   }
 }
 
