@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { Stage, Layer as KonvaLayer, Image as KonvaImage, Text as KonvaText, Transformer, Rect, Group } from 'react-konva';
+import { KonvaEventObject } from 'konva/lib/Node';
 import useImage from 'use-image';
 import { useStore } from '../store';
 import { Layer, Asset } from '../types';
@@ -9,16 +10,20 @@ import { ZoomIn, ZoomOut, Maximize, Scan } from 'lucide-react';
 interface CanvasItemProps {
   layer: Layer;
   isSelected: boolean;
+  isMultiSelected: boolean;
   onSelect: () => void;
+  onMultiSelect: () => void;
   onChange: (newAttrs: Partial<Layer>, saveToHistory: boolean) => void;
 }
 
 // Unified component for Image or Text layers
-const CanvasItem: React.FC<CanvasItemProps> = ({ 
-  layer, 
-  isSelected, 
-  onSelect, 
-  onChange 
+const CanvasItem: React.FC<CanvasItemProps> = ({
+  layer,
+  isSelected,
+  isMultiSelected,
+  onSelect,
+  onMultiSelect,
+  onChange
 }) => {
   const [image] = useImage(layer.src || '', 'anonymous');
   const shapeRef = useRef<any>(null); // Type is roughly Konva.Image | Konva.Text
@@ -56,8 +61,17 @@ const CanvasItem: React.FC<CanvasItemProps> = ({
 
   if (!layer.visible) return null;
 
+  // Handle click with Shift detection for multi-select
+  const handleClick = (e: KonvaEventObject<MouseEvent>) => {
+    if (e.evt.shiftKey) {
+      onMultiSelect();
+    } else {
+      onSelect();
+    }
+  };
+
   const commonProps = {
-    onClick: onSelect,
+    onClick: handleClick,
     onTap: onSelect,
     ref: shapeRef,
     x: layer.x,
@@ -147,7 +161,7 @@ const CanvasItem: React.FC<CanvasItemProps> = ({
 };
 
 export const EditorCanvas: React.FC<{ stageRef: React.RefObject<Konva.Stage> }> = ({ stageRef }) => {
-  const { layers, selectedLayerId, selectLayer, updateLayer, addLayer, canvasSettings, baseImage, setZoom } = useStore();
+  const { layers, selectedLayerId, selectedLayerIds, selectLayer, updateLayer, addLayer, canvasSettings, baseImage, setZoom } = useStore();
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
   
@@ -233,12 +247,30 @@ export const EditorCanvas: React.FC<{ stageRef: React.RefObject<Konva.Stage> }> 
         const localX = (pointerX - workAreaX) / zoom;
         const localY = (pointerY - workAreaY) / zoom;
         
-        // Center the new asset (assuming 200x200 default size from store) around the cursor
-        // Store defaultW/H is 200, so subtract 100 to center
-        const centeredX = localX - 100;
-        const centeredY = localY - 100;
+        // Calculate appropriate size and position for the asset
+        const canvasWidth = canvasSettings.width;
+        const canvasHeight = canvasSettings.height;
 
-        addLayer(asset, { x: centeredX, y: centeredY });
+        // Default asset size
+        const defaultAssetSize = 200;
+
+        // Scale asset down if canvas is small (less than 600px wide or tall)
+        const maxCanvasDimension = Math.max(canvasWidth, canvasHeight);
+        const scaleFactor = maxCanvasDimension < 600 ? Math.min(maxCanvasDimension / 600, 0.8) : 1;
+        const assetSize = Math.min(defaultAssetSize * scaleFactor, Math.min(canvasWidth * 0.4, canvasHeight * 0.4, defaultAssetSize));
+        const halfSize = assetSize / 2;
+
+        // Center asset around drop point, but keep it within canvas bounds
+        let centeredX = Math.max(0, Math.min(canvasWidth - assetSize, localX - halfSize));
+        let centeredY = Math.max(0, Math.min(canvasHeight - assetSize, localY - halfSize));
+
+        // If drop point is outside canvas bounds, center asset in canvas
+        if (localX < 0 || localX > canvasWidth || localY < 0 || localY > canvasHeight) {
+          centeredX = (canvasWidth - assetSize) / 2;
+          centeredY = (canvasHeight - assetSize) / 2;
+        }
+
+        addLayer(asset, { x: centeredX, y: centeredY }, { width: assetSize, height: assetSize });
 
     } catch (err) {
         console.error("Failed to parse dropped asset", err);
@@ -302,7 +334,9 @@ export const EditorCanvas: React.FC<{ stageRef: React.RefObject<Konva.Stage> }> 
                 key={layer.id}
                 layer={layer}
                 isSelected={layer.id === selectedLayerId}
-                onSelect={() => selectLayer(layer.id)}
+                isMultiSelected={selectedLayerIds.includes(layer.id)}
+                onSelect={() => selectLayer(layer.id, false)}
+                onMultiSelect={() => selectLayer(layer.id, true)}
                 onChange={(newAttrs, save) => updateLayer(layer.id, newAttrs, save)}
               />
             ))}

@@ -1,8 +1,119 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ASSETS } from '../constants';
 import { useStore } from '../store';
 import { AssetCategory } from '../types';
-import { Search, PlusCircle, Calendar, Info, GripHorizontal } from 'lucide-react';
+import { Search, PlusCircle, Calendar, Info, GripHorizontal, AlertCircle } from 'lucide-react';
+
+// Lazy Asset Item Component with error handling
+interface LazyAssetItemProps {
+  asset: typeof ASSETS[0];
+  onClick: () => void;
+  onDragStart: (e: React.DragEvent) => void;
+}
+
+const LazyAssetItem: React.FC<LazyAssetItemProps> = ({ asset, onClick, onDragStart }) => {
+  const [isIntersecting, setIsIntersecting] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setIsIntersecting(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      draggable={!imageError}
+      onDragStart={onDragStart}
+      onClick={imageError ? undefined : onClick}
+      className={`group relative flex flex-col bg-white rounded-xl shadow-sm border border-holy-100 overflow-hidden cursor-grab active:cursor-grabbing hover:shadow-md hover:border-holy-300 transition-all h-full ${
+        imageError ? 'cursor-not-allowed opacity-60' : ''
+      }`}
+    >
+      {/* Image with lazy loading and error handling */}
+      <div className="aspect-square w-full relative overflow-hidden bg-gray-50">
+        {isIntersecting ? (
+          <>
+            {!imageError ? (
+              <img
+                src={asset.src}
+                alt={asset.name}
+                className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
+                onLoad={() => setIsLoaded(true)}
+                onError={() => setImageError(true)}
+                style={{ opacity: isLoaded ? 1 : 0 }}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                <div className="flex flex-col items-center gap-2 text-gray-400">
+                  <AlertCircle size={24} />
+                  <span className="text-xs text-center px-2">Image unavailable</span>
+                </div>
+              </div>
+            )}
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+              <span className="text-white text-xs font-bold flex flex-col items-center gap-1">
+                <GripHorizontal size={20} />
+                Drag to Canvas
+              </span>
+            </div>
+          </>
+        ) : (
+          // Placeholder skeleton
+          <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 animate-pulse" />
+        )}
+      </div>
+
+      {/* Info */}
+      <div className="p-3 flex flex-col flex-1">
+        <div className="flex justify-between items-start mb-1">
+          <h3 className="text-sm font-bold text-gray-900 leading-tight">{asset.name}</h3>
+        </div>
+
+        {asset.subCategory && (
+          <span className="text-[10px] uppercase tracking-wider text-holy-600 font-semibold mb-1">
+            {asset.subCategory}
+          </span>
+        )}
+
+        {asset.feastDay && (
+          <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+            <Calendar size={10} />
+            <span>{asset.feastDay}</span>
+          </div>
+        )}
+
+        {asset.description && (
+          <p className="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed">
+            {asset.description}
+          </p>
+        )}
+
+        {asset.symbolism && (
+          <div className="mt-2 pt-2 border-t border-gray-100 flex items-start gap-1">
+            <Info size={10} className="text-holy-400 mt-0.5 flex-shrink-0" />
+            <p className="text-[10px] text-gray-400 italic leading-tight">{asset.symbolism}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 const CATEGORIES: { id: AssetCategory; label: string; icon: string }[] = [
   { id: 'saints', label: 'Saints', icon: '✝️' },
@@ -23,9 +134,6 @@ export const AssetLibrary: React.FC = () => {
   const handleDragStart = (e: React.DragEvent, asset: typeof ASSETS[0]) => {
      e.dataTransfer.setData('application/json', JSON.stringify(asset));
      e.dataTransfer.effectAllowed = 'copy';
-     
-     // Optional: Set a drag image if we wanted a custom ghost, 
-     // but default browser ghost is usually good enough for images.
   };
 
   return (
@@ -64,57 +172,12 @@ export const AssetLibrary: React.FC = () => {
       {/* Grid */}
       <div className="flex-1 overflow-y-auto p-4 grid grid-cols-2 gap-3 bg-holy-50/30">
         {filteredAssets.map(asset => (
-          <div 
+          <LazyAssetItem
             key={asset.id}
-            draggable
-            onDragStart={(e) => handleDragStart(e, asset)}
+            asset={asset}
             onClick={() => addLayer(asset)}
-            className="group relative flex flex-col bg-white rounded-xl shadow-sm border border-holy-100 overflow-hidden cursor-grab active:cursor-grabbing hover:shadow-md hover:border-holy-300 transition-all h-full"
-          >
-            {/* Image */}
-            <div className="aspect-square w-full relative overflow-hidden bg-gray-50">
-               <img src={asset.src} alt={asset.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                  <span className="text-white text-xs font-bold flex flex-col items-center gap-1">
-                      <GripHorizontal size={20} />
-                      Drag to Canvas
-                  </span>
-               </div>
-            </div>
-            
-            {/* Info */}
-            <div className="p-3 flex flex-col flex-1">
-               <div className="flex justify-between items-start mb-1">
-                 <h3 className="text-sm font-bold text-gray-900 leading-tight">{asset.name}</h3>
-               </div>
-               
-               {asset.subCategory && (
-                 <span className="text-[10px] uppercase tracking-wider text-holy-600 font-semibold mb-1">
-                   {asset.subCategory}
-                 </span>
-               )}
-               
-               {asset.feastDay && (
-                 <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
-                   <Calendar size={10} />
-                   <span>{asset.feastDay}</span>
-                 </div>
-               )}
-
-               {asset.description && (
-                 <p className="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed">
-                   {asset.description}
-                 </p>
-               )}
-               
-               {asset.symbolism && (
-                  <div className="mt-2 pt-2 border-t border-gray-100 flex items-start gap-1">
-                     <Info size={10} className="text-holy-400 mt-0.5 flex-shrink-0" />
-                     <p className="text-[10px] text-gray-400 italic leading-tight">{asset.symbolism}</p>
-                  </div>
-               )}
-            </div>
-          </div>
+            onDragStart={(e) => handleDragStart(e, asset)}
+          />
         ))}
         {filteredAssets.length === 0 && (
           <div className="col-span-2 text-center py-8 text-gray-400 text-sm">
