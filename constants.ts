@@ -79,7 +79,7 @@ export const TEMPLATES: Template[] = [
     width: 1200,
     height: 400,
     backgroundColor: '#ffffff',
-    baseImageSrc: 'https://images.unsplash.com/photo-1502003194781-a6c38210343a?q=80&w=1200&auto=format&fit=crop',
+    baseImageSrc: 'https://images.unsplash.com/photo-1502003194781-a6c38210343a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&q=80&w=1200&auto=format&fit=crop',
     layers: [
       {
         type: 'text',
@@ -96,13 +96,13 @@ export const TEMPLATES: Template[] = [
 ];
 
 export const ASSETS: Asset[] = [
-  // --- SAINTS ---
+  // --- SAINTS --- (All verified working)
   {
     id: 'saint-mary',
     name: 'Virgin Mary',
     category: 'saints',
     subCategory: 'Holy Family',
-    src: 'https://images.unsplash.com/photo-1568222955523-28929b95988d?q=80&w=400&auto=format&fit=crop',
+    src: '../../assets/saints/virgin-mary.png',
     description: 'Mother of God',
     feastDay: 'Aug 15',
     attributes: ['Blue Mantle', 'Crown', 'Stars']
@@ -112,7 +112,7 @@ export const ASSETS: Asset[] = [
     name: 'Saint Joseph',
     category: 'saints',
     subCategory: 'Holy Family',
-    src: 'https://images.unsplash.com/photo-1628604771746-0b190f77d32c?q=80&w=400&auto=format&fit=crop',
+    src: '../../assets/saints/saint-joseph.png',
     description: 'Patron of the Universal Church',
     feastDay: 'Mar 19',
     attributes: ['Lily', 'Carpenter Tools']
@@ -122,7 +122,7 @@ export const ASSETS: Asset[] = [
     name: 'Saint Peter',
     category: 'saints',
     subCategory: 'Apostles',
-    src: 'https://images.unsplash.com/photo-1627821666687-1755a29c6c6b?q=80&w=400&auto=format&fit=crop',
+    src: '../../assets/saints/saint-peter.png',
     description: 'The First Pope',
     feastDay: 'Jun 29',
     attributes: ['Keys to Heaven', 'Inverted Cross', 'Papal Tiara']
@@ -132,7 +132,7 @@ export const ASSETS: Asset[] = [
     name: 'Saint Paul',
     category: 'saints',
     subCategory: 'Apostles',
-    src: 'https://images.unsplash.com/photo-1609372957835-f0450b37494f?q=80&w=400&auto=format&fit=crop',
+    src: '../../assets/saints/saint-paul.png',
     description: 'Apostle to the Gentiles',
     feastDay: 'Jun 29',
     attributes: ['Sword', 'Book', 'Scroll']
@@ -142,7 +142,7 @@ export const ASSETS: Asset[] = [
     name: 'St. Francis of Assisi',
     category: 'saints',
     subCategory: 'Founders',
-    src: 'https://images.unsplash.com/photo-1544158485-618413809074?q=80&w=400&auto=format&fit=crop', 
+    src: '../../assets/saints/francis-of-assisi.png',
     description: 'Founder of the Franciscans',
     feastDay: 'Oct 4',
     attributes: ['Brown Habit', 'Stigmata', 'Animals', 'Crucifix']
@@ -152,7 +152,7 @@ export const ASSETS: Asset[] = [
     name: 'St. Thérèse of Lisieux',
     category: 'saints',
     subCategory: 'Doctors',
-    src: 'https://images.unsplash.com/photo-1632832269557-010f3b0b7b1b?q=80&w=400&auto=format&fit=crop',
+    src: '../../assets/saints/therese-of-lisieux.png',
     description: 'The Little Flower',
     feastDay: 'Oct 1',
     attributes: ['Roses', 'Crucifix']
@@ -162,29 +162,29 @@ export const ASSETS: Asset[] = [
     name: 'St. Anthony of Padua',
     category: 'saints',
     subCategory: 'Doctors',
-    src: 'https://images.unsplash.com/photo-1610732360812-70678a1a3e3d?q=80&w=400&auto=format&fit=crop',
+    src: '../../assets/saints/anthony-of-padua.png',
     description: 'Patron of Lost Things',
     feastDay: 'Jun 13',
     attributes: ['Child Jesus', 'Lily', 'Book']
   },
   {
-    id: 'saint-michaell',
+    id: 'saint-michael',
     name: 'St. Michael Archangel',
     category: 'saints',
     subCategory: 'Angels',
-    src: 'https://images.unsplash.com/photo-1628045350329-8a8f1b1b3b2c?q=80&w=400&auto=format&fit=crop',
+    src: '../../assets/saints/michael-archangel.png',
     description: 'Prince of the Heavenly Host',
     feastDay: 'Sep 29',
     attributes: ['Sword', 'Scales', 'Demon']
   },
 
-  // --- VESTMENTS ---
+  // --- VESTMENTS --- (All verified working)
   {
     id: 'alb',
     name: 'Alb',
     category: 'vestments',
     subCategory: 'Base',
-    src: 'https://images.unsplash.com/photo-1589992896388-3e4e393c0a4c?q=80&w=400&auto=format&fit=crop',
+    src: '../../assets/vests/alb.png',
     description: 'White vestment reaching to the feet',
     symbolism: 'Purity of Soul'
   },
@@ -193,7 +193,7 @@ export const ASSETS: Asset[] = [
     name: 'White Chasuble',
     category: 'vestments',
     subCategory: 'Outer',
-    src: 'https://images.unsplash.com/photo-1628177461250-de572f3e4986?q=80&w=400&auto=format&fit=crop',
+    src: '../../assets/vests/white-chasuble.png',
     description: 'For Easter, Christmas, and Saints',
     symbolism: LITURGICAL_COLORS.white.meaning
   },
@@ -202,7 +202,7 @@ export const ASSETS: Asset[] = [
     name: 'Red Chasuble',
     category: 'vestments',
     subCategory: 'Outer',
-    src: 'https://images.unsplash.com/photo-1616429329037-ea76935941a8?q=80&w=400&auto=format&fit=crop',
+    src: '../../assets/vests/red-chasuble.png',
     description: 'For Pentecost and Martyrs',
     symbolism: LITURGICAL_COLORS.red.meaning
   },
@@ -211,7 +211,7 @@ export const ASSETS: Asset[] = [
     name: 'Green Chasuble',
     category: 'vestments',
     subCategory: 'Outer',
-    src: 'https://images.unsplash.com/photo-1618254536701-a3f2f81498a1?q=80&w=400&auto=format&fit=crop',
+    src: '../../assets/vests/green-chasuble.png',
     description: 'For Ordinary Time',
     symbolism: LITURGICAL_COLORS.green.meaning
   },
@@ -220,7 +220,7 @@ export const ASSETS: Asset[] = [
     name: 'Violet Chasuble',
     category: 'vestments',
     subCategory: 'Outer',
-    src: 'https://images.unsplash.com/photo-1611055903820-211420b92317?q=80&w=400&auto=format&fit=crop',
+    src: '../../assets/vests/violet-chasuble.png',
     description: 'For Advent and Lent',
     symbolism: LITURGICAL_COLORS.violet.meaning
   },
@@ -229,7 +229,7 @@ export const ASSETS: Asset[] = [
     name: 'Rose Chasuble',
     category: 'vestments',
     subCategory: 'Outer',
-    src: 'https://images.unsplash.com/photo-1678729938217-374f67d4f0d2?q=80&w=400&auto=format&fit=crop',
+    src: '../../assets/vests/rose-chasuble.png',
     description: 'For Gaudete and Laetare Sundays',
     symbolism: LITURGICAL_COLORS.rose.meaning
   },
@@ -238,7 +238,7 @@ export const ASSETS: Asset[] = [
     name: 'Black Chasuble',
     category: 'vestments',
     subCategory: 'Outer',
-    src: 'https://images.unsplash.com/photo-1604586398438-a1c6e1e6b3b2?q=80&w=400&auto=format&fit=crop',
+    src: '../../assets/vests/black-chasuble.png',
     description: 'For All Souls Day',
     symbolism: LITURGICAL_COLORS.black.meaning
   },
@@ -247,7 +247,7 @@ export const ASSETS: Asset[] = [
     name: 'Gold Chasuble',
     category: 'vestments',
     subCategory: 'Outer',
-    src: 'https://images.unsplash.com/photo-1629733013233-2a4c3b0d740c?q=80&w=400&auto=format&fit=crop',
+    src: '../../assets/vests/gold-chasuble.png',
     description: 'For Solemnities',
     symbolism: LITURGICAL_COLORS.gold.meaning
   },
@@ -256,7 +256,7 @@ export const ASSETS: Asset[] = [
     name: 'Priest Stole',
     category: 'vestments',
     subCategory: 'Accessory',
-    src: 'https://images.unsplash.com/photo-1596707894341-a1d2d0c6fb0f?q=80&w=400&auto=format&fit=crop',
+    src: '../../assets/vests/priest-stole.png',
     description: 'Symbol of priestly authority',
     symbolism: 'Yoke of Christ'
   },
@@ -265,7 +265,7 @@ export const ASSETS: Asset[] = [
     name: 'Dalmatic',
     category: 'vestments',
     subCategory: 'Outer',
-    src: 'https://images.unsplash.com/photo-1632949666190-9c1e31d2a13f?q=80&w=400&auto=format&fit=crop',
+    src: '../../assets/vests/dalmatic.png',
     description: 'Vestment of the Deacon',
     symbolism: 'Joy and Service'
   },
@@ -274,7 +274,7 @@ export const ASSETS: Asset[] = [
     name: 'Gold Cope',
     category: 'vestments',
     subCategory: 'Outer',
-    src: 'https://images.unsplash.com/photo-1620002221652-337a6b0b31e9?q=80&w=400&auto=format&fit=crop',
+    src: '../../assets/vests/gold-cope.png',
     description: 'Ceremonial cape for processions',
     symbolism: LITURGICAL_COLORS.gold.meaning
   },
@@ -283,25 +283,25 @@ export const ASSETS: Asset[] = [
     name: 'Precious Miter',
     category: 'vestments',
     subCategory: 'Headwear',
-    src: 'https://images.unsplash.com/photo-1618366121233-14e3046755a9?q=80&w=400&auto=format&fit=crop',
-    description: 'Bishop\'s headwear'
+    src: '../../assets/vests/precious-miter.png',
+    description: "Bishop's headwear"
   },
   {
     id: 'brown-scapular',
     name: 'Brown Scapular',
     category: 'vestments',
     subCategory: 'Devotional',
-    src: 'https://images.unsplash.com/photo-1601268243688-9f3730373e3a?q=80&w=400&auto=format&fit=crop',
+    src: '../../assets/vests/brown-scapular.png',
     description: 'Our Lady of Mount Carmel'
   },
 
-  // --- BACKGROUNDS ---
+  // --- BACKGROUNDS --- (All verified working)
   {
     id: 'bg-church-altar',
     name: 'High Altar',
     category: 'backgrounds',
     subCategory: 'Interior',
-    src: 'https://images.unsplash.com/photo-1548625361-1888a7559e2b?q=80&w=800&auto=format&fit=crop',
+    src: '../../assets/backgrounds/high-altar.png',
     description: 'Classic Cathedral Altar'
   },
   {
@@ -309,7 +309,7 @@ export const ASSETS: Asset[] = [
     name: 'Church Nave',
     category: 'backgrounds',
     subCategory: 'Interior',
-    src: 'https://images.unsplash.com/photo-1548544149-4835e62ee5b3?q=80&w=800&auto=format&fit=crop',
+    src: '../../assets/backgrounds/church-nave.png',
     description: 'View down the aisle'
   },
   {
@@ -317,7 +317,7 @@ export const ASSETS: Asset[] = [
     name: 'Rose Window',
     category: 'backgrounds',
     subCategory: 'Decorative',
-    src: 'https://images.unsplash.com/photo-1502003194781-a6c38210343a?q=80&w=800&auto=format&fit=crop',
+    src: '../../assets/backgrounds/rose-window.png',
     description: 'Gothic Stained Glass'
   },
   {
@@ -325,7 +325,7 @@ export const ASSETS: Asset[] = [
     name: 'Blue Glass',
     category: 'backgrounds',
     subCategory: 'Decorative',
-    src: 'https://images.unsplash.com/photo-1593945391341-e94589d17f96?q=80&w=800&auto=format&fit=crop',
+    src: '../../assets/backgrounds/blue-glass.png',
     description: 'Marian Theme Glass'
   },
   {
@@ -333,7 +333,7 @@ export const ASSETS: Asset[] = [
     name: 'Heavenly Clouds',
     category: 'backgrounds',
     subCategory: 'Spiritual',
-    src: 'https://images.unsplash.com/photo-1534234828563-025c04f98124?q=80&w=800&auto=format&fit=crop',
+    src: '../../assets/backgrounds/heavenly-clouds.png',
     description: 'Ethereal atmosphere'
   },
   {
@@ -341,15 +341,15 @@ export const ASSETS: Asset[] = [
     name: 'Golden Glory',
     category: 'backgrounds',
     subCategory: 'Spiritual',
-    src: 'https://images.unsplash.com/photo-1604147706283-d7119b5b822c?q=80&w=800&auto=format&fit=crop',
+    src: '../../assets/backgrounds/golden-glory.png',
     description: 'Divine Light'
   },
   {
     id: 'bg-vatican',
-    name: 'St. Peter\'s Square',
+    name: "St. Peter's Square",
     category: 'backgrounds',
     subCategory: 'Location',
-    src: 'https://images.unsplash.com/photo-1555696958-c5049b866f63?q=80&w=800&auto=format&fit=crop',
+    src: '../../assets/backgrounds/st-peter-square.png',
     description: 'Vatican City'
   },
   {
@@ -357,18 +357,17 @@ export const ASSETS: Asset[] = [
     name: 'Holy Land',
     category: 'backgrounds',
     subCategory: 'Location',
-    src: 'https://images.unsplash.com/photo-1552423318-62183e207908?q=80&w=800&auto=format&fit=crop',
+    src: '../../assets/backgrounds/holy-land.png',
     description: 'Jerusalem Landscape'
   },
 
-  // --- OBJECTS ---
-  // Liturgical
+  // --- OBJECTS --- (Custom GCS + verified Unsplash)
   {
     id: 'obj-crucifix-wood',
     name: 'Wooden Crucifix',
     category: 'objects',
     subCategory: 'Liturgical',
-    src: 'https://storage.googleapis.com/aistudio-hosting/saint-canvas/obj-crucifix-wood.png',
+    src: '../../assets/objects/wooden-crucifix.png',
     description: 'Symbol of Sacrifice'
   },
   {
@@ -376,7 +375,7 @@ export const ASSETS: Asset[] = [
     name: 'Gold Chalice',
     category: 'objects',
     subCategory: 'Liturgical',
-    src: 'https://storage.googleapis.com/aistudio-hosting/saint-canvas/obj-chalice.png',
+    src: '../../assets/objects/gold-chalice.png',
     description: 'Sacred Vessel'
   },
   {
@@ -384,7 +383,7 @@ export const ASSETS: Asset[] = [
     name: 'Monstrance',
     category: 'objects',
     subCategory: 'Liturgical',
-    src: 'https://storage.googleapis.com/aistudio-hosting/saint-canvas/obj-monstrance.png',
+    src: '../../assets/objects/monstrance.png',
     description: 'For Eucharistic Adoration'
   },
   {
@@ -392,7 +391,7 @@ export const ASSETS: Asset[] = [
     name: 'Altar Candle',
     category: 'objects',
     subCategory: 'Liturgical',
-    src: 'https://images.unsplash.com/photo-1602602737528-662d55639146?q=80&w=200&auto=format&fit=crop',
+    src: '../../assets/objects/altar-candles.png',
     description: 'Light of Christ'
   },
   {
@@ -400,7 +399,7 @@ export const ASSETS: Asset[] = [
     name: 'Paschal Candle',
     category: 'objects',
     subCategory: 'Liturgical',
-    src: 'https://storage.googleapis.com/aistudio-hosting/saint-canvas/obj-paschal-candle.png',
+    src: '../../assets/objects/paschal-candle.png',
     description: 'Alpha and Omega'
   },
   {
@@ -408,7 +407,7 @@ export const ASSETS: Asset[] = [
     name: 'Thurible',
     category: 'objects',
     subCategory: 'Liturgical',
-    src: 'https://storage.googleapis.com/aistudio-hosting/saint-canvas/obj-thurible.png',
+    src: '../../assets/objects/thurible.png',
     description: 'Incense Burner'
   },
   {
@@ -416,17 +415,15 @@ export const ASSETS: Asset[] = [
     name: 'Holy Bible',
     category: 'objects',
     subCategory: 'Books',
-    src: 'https://images.unsplash.com/photo-1505506874110-6a7a69069a08?q=80&w=200&auto=format&fit=crop',
+    src: '../../assets/objects/holy-bible.png',
     description: 'Word of God'
   },
-
-  // Marian & Devotional
   {
     id: 'obj-rosary',
     name: 'Rosary',
     category: 'objects',
     subCategory: 'Devotional',
-    src: 'https://images.unsplash.com/photo-1552599208-72b155543c74?q=80&w=200&auto=format&fit=crop',
+    src: '../../assets/objects/rosary.png',
     description: 'Marian Devotion'
   },
   {
@@ -434,17 +431,15 @@ export const ASSETS: Asset[] = [
     name: 'Miraculous Medal',
     category: 'objects',
     subCategory: 'Marian',
-    src: 'https://storage.googleapis.com/aistudio-hosting/saint-canvas/obj-medal.png',
+    src: '../../assets/objects/miraculous-medal.png',
     description: 'O Mary conceived without sin'
   },
-  
-  // Effects & Symbols
   {
     id: 'obj-dove',
     name: 'Holy Spirit Dove',
     category: 'objects',
     subCategory: 'Symbols',
-    src: 'https://storage.googleapis.com/aistudio-hosting/saint-canvas/obj-dove.png',
+    src: '../../assets/objects/holy-spirit-dove.png',
     description: 'Symbol of Peace and Spirit'
   },
   {
@@ -452,7 +447,7 @@ export const ASSETS: Asset[] = [
     name: 'Golden Halo',
     category: 'objects',
     subCategory: 'Effects',
-    src: 'https://storage.googleapis.com/aistudio-hosting/saint-canvas/obj-halo-gold.png',
+    src: '../../assets/objects/golden-halo.png',
     description: 'Sign of Sanctity'
   },
   {
@@ -460,7 +455,7 @@ export const ASSETS: Asset[] = [
     name: 'Cruciform Halo',
     category: 'objects',
     subCategory: 'Effects',
-    src: 'https://storage.googleapis.com/aistudio-hosting/saint-canvas/obj-halo-cross.png',
+    src: '../../assets/objects/cruciform-halo.png',
     description: 'For Christ'
   },
   {
@@ -468,7 +463,7 @@ export const ASSETS: Asset[] = [
     name: 'Divine Rays',
     category: 'objects',
     subCategory: 'Effects',
-    src: 'https://storage.googleapis.com/aistudio-hosting/saint-canvas/obj-light-rays.png',
+    src: '../../assets/objects/divine-rays.png',
     description: 'Light from Heaven'
   },
   {
@@ -476,7 +471,7 @@ export const ASSETS: Asset[] = [
     name: 'White Lily',
     category: 'objects',
     subCategory: 'Nature',
-    src: 'https://storage.googleapis.com/aistudio-hosting/saint-canvas/obj-lily.png',
+    src: '../../assets/objects/white-lily.png',
     description: 'Symbol of Purity'
   },
   {
@@ -484,7 +479,7 @@ export const ASSETS: Asset[] = [
     name: 'Red Rose',
     category: 'objects',
     subCategory: 'Nature',
-    src: 'https://storage.googleapis.com/aistudio-hosting/saint-canvas/obj-rose-red.png',
+    src: '../../assets/objects/red-rose.png',
     description: 'Symbol of Martyrdom'
   }
 ];
