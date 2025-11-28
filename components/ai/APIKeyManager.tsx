@@ -132,6 +132,55 @@ const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, onClose }) => {
           'Create API Key',
         ],
       },
+      'deepai': {
+        url: 'https://www.google.com/search?q=DeepAI+API+key',
+        steps: [
+          'Go to DeepAI website',
+          'Sign up for account',
+          'Get API Key from dashboard',
+          'Copy and paste here',
+        ],
+      },
+      'huggingface': {
+        url: 'https://www.google.com/search?q=HuggingFace+API+token',
+        steps: [
+          'Go to HuggingFace',
+          'Create account (if needed)',
+          'Go to Settings > Access Tokens',
+          'Create new token (Role: Read)',
+          'Copy and paste here',
+        ],
+      },
+      'clipdrop': {
+        url: 'https://www.google.com/search?q=Clipdrop+API+key',
+        steps: [
+          'Go to Clipdrop website',
+          'Sign in with Stability AI account',
+          'Go to API section',
+          'Generate API key',
+          'Copy and paste here',
+        ],
+      },
+      'bytedance-aigc': {
+        url: 'https://www.google.com/search?q=ByteDance+AIGC+API+key',
+        steps: [
+          'Search for ByteDance AIGC API',
+          'Find official documentation',
+          'Register for API access',
+          'Obtain API key',
+          'Copy and paste here',
+        ],
+      },
+      'removebg': {
+        url: 'https://www.google.com/search?q=Remove.bg+API+key',
+        steps: [
+          'Go to Remove.bg',
+          'Sign up for account',
+          'Go to API section',
+          'Get API key',
+          'Copy and paste here',
+        ],
+      },
     };
 
     return guides[provider] || { url: '', steps: [] };

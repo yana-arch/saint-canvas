@@ -1,12 +1,17 @@
 
-export type AIProviderType = 
+export type AIProviderType =
   | 'google-gemini'
   | 'openai-dalle'
   | 'stability-ai'
   | 'replicate'
   | 'together-ai'
   | 'fal-ai'
-  | 'leonardo-ai';
+  | 'leonardo-ai'
+  | 'deepai'
+  | 'huggingface'
+  | 'clipdrop'
+  | 'bytedance-aigc'
+  | 'removebg';
 
 export type GenerationMode = 'text-to-image' | 'image-to-image' | 'inpainting' | 'outpainting' | 'background-removal';
 

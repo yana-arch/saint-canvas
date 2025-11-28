@@ -14,6 +14,11 @@ import { OpenAIProvider } from './providers/OpenAIProvider';
 import { StabilityAIProvider } from './providers/StabilityAIProvider';
 import { ReplicateProvider } from './providers/ReplicateProvider';
 import { TogetherAIProvider } from './providers/TogetherAIProvider';
+import { DeepAIProvider } from './providers/DeepAIProvider';
+import { HuggingFaceProvider } from './providers/HuggingFaceProvider';
+import { ClipdropProvider } from './providers/ClipdropProvider';
+import { ByteDanceAIGCProvider } from './providers/ByteDanceAIGCProvider';
+import { RemoveBGProvider } from './providers/RemoveBGProvider';
 
 interface RateLimitEntry {
   timestamp: number;
@@ -50,6 +55,11 @@ class AIProviderManager {
     this.providers.set('stability-ai', new StabilityAIProvider());
     this.providers.set('replicate', new ReplicateProvider());
     this.providers.set('together-ai', new TogetherAIProvider());
+    this.providers.set('deepai', new DeepAIProvider());
+    this.providers.set('huggingface', new HuggingFaceProvider());
+    this.providers.set('clipdrop', new ClipdropProvider());
+    this.providers.set('bytedance-aigc', new ByteDanceAIGCProvider());
+    this.providers.set('removebg', new RemoveBGProvider());
   }
 
   private loadStoredCredentials(): void {
